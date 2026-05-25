@@ -1,0 +1,245 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import '../providers/motor_provider.dart';
+import '../../payment/screens/payment_screen.dart';
+import '../../../core/models/motorcycle_model.dart';
+import '../../../core/constants/app_constants.dart';
+
+class AddRentalScreen extends ConsumerStatefulWidget {
+  final String? motorcycleId;
+  final String? plateNumber;
+
+  const AddRentalScreen({super.key, this.motorcycleId, this.plateNumber});
+
+  @override
+  ConsumerState<AddRentalScreen> createState() => _AddRentalScreenState();
+}
+
+class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  final _unitCtrl = TextEditingController();
+  DateTime? _startDate;
+  DateTime? _endDate;
+  final bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
+    _unitCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate(bool isStart) async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: isStart ? now : (_startDate ?? now).add(const Duration(days: 1)),
+      firstDate: isStart ? now : (_startDate ?? now),
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isStart) {
+          _startDate = picked;
+          if (_endDate != null && _endDate!.isBefore(_startDate!)) _endDate = null;
+        } else {
+          _endDate = picked;
+        }
+      });
+    }
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_startDate == null || _endDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pilih tanggal sewa dan kembali')));
+      return;
+    }
+
+    final motorsAsync = ref.read(motorcyclesStreamProvider);
+    final motors = motorsAsync.value ?? [];
+    final motor = motors.firstWhere(
+      (m) => m.id == widget.motorcycleId,
+      orElse: () => MotorcycleModel(
+          id: widget.motorcycleId ?? '',
+          nama: widget.plateNumber ?? '',
+          harga: 0,
+          status: 'tersedia'),
+    );
+
+    final days = _endDate!.difference(_startDate!).inDays;
+    final totalPrice = days * motor.harga;
+
+    if (mounted) {
+      Future.microtask(() {
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PaymentScreen(
+              totalAmount: totalPrice.toDouble(),
+              onPaymentSuccess: () async {
+                // Save ONLY after payment is confirmed
+                await ref.read(motorNotifierProvider.notifier).addRental(
+                      motorcycle: motor,
+                      guestName: _nameCtrl.text.trim(),
+                      guestPhone: _phoneCtrl.text.trim(),
+                      unit: _unitCtrl.text.trim(),
+                      startDate: _startDate!,
+                      endDate: _endDate!,
+                    );
+                
+                if (context.mounted) {
+                  context.go('/motorcycles');
+                }
+              },
+            ),
+          ),
+        );
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final df = DateFormat('dd MMM yyyy', 'id_ID');
+    final days =
+        (_startDate != null && _endDate != null) ? _endDate!.difference(_startDate!).inDays : 0;
+
+    return Scaffold(
+      appBar: AppBar(title: Text('Penyewaan Motor ${widget.plateNumber ?? ''}')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppDimensions.paddingM),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppDimensions.paddingM),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Tanggal Sewa',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDateBtn('Tanggal Sewa',
+                                _startDate != null ? df.format(_startDate!) : 'Pilih',
+                                () => _pickDate(true)),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildDateBtn('Tanggal Kembali',
+                                _endDate != null ? df.format(_endDate!) : 'Pilih',
+                                () => _pickDate(false)),
+                          ),
+                        ],
+                      ),
+                      if (days > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text('$days hari',
+                              style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppDimensions.paddingM),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Data Penyewa',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _nameCtrl,
+                        decoration: const InputDecoration(
+                            labelText: 'Nama Lengkap',
+                            prefixIcon: Icon(Icons.person_outlined)),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Wajib diisi' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _phoneCtrl,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
+                            labelText: 'No. Telepon',
+                            prefixIcon: Icon(Icons.phone_outlined)),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Wajib diisi' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _unitCtrl,
+                        decoration: const InputDecoration(
+                            labelText: 'Unit / Nomor Kamar',
+                            prefixIcon: Icon(Icons.door_front_door_outlined)),
+                        validator: (v) =>
+                            v == null || v.isEmpty ? 'Wajib diisi' : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _submit,
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Simpan Penyewaan'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateBtn(String label, String value, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceVariant,
+          borderRadius: BorderRadius.circular(AppDimensions.radiusM),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label,
+                style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                const Icon(Icons.calendar_today, size: 14, color: AppColors.primary),
+                const SizedBox(width: 6),
+                Flexible(child: Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

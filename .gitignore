@@ -1,0 +1,21 @@
+# Flutter
+.dart_tool/
+.packages
+.pub/
+build/
+
+# Android
+android/.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+
+# iOS
+ios/Flutter/.last_build_id
+
+# VSCode
+.vscode/
+
+# Misc
+*.log
+*.tmp

@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "945388284295",
+    "project_id": "rnd-database-21030",
+    "storage_bucket": "rnd-database-21030.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:945388284295:android:dc70c4036755c5f6e18b22",
+        "android_client_info": {
+          "package_name": "com.example.rnd_proj"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcn0gZGBQFGT5VJybW1JF-M6w2frR0l44"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:945388284295:android:f3c4d01f8be37c53e18b22",
+        "android_client_info": {
+          "package_name": "com.example.rnd_proje"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcn0gZGBQFGT5VJybW1JF-M6w2frR0l44"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:945388284295:android:05721fa0367346d2e18b22",
+        "android_client_info": {
+          "package_name": "com.example.rnd_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcn0gZGBQFGT5VJybW1JF-M6w2frR0l44"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

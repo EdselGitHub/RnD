@@ -8,7 +8,6 @@ import '../../features/reservation/screens/add_reservation_screen.dart';
 import '../../features/reservation/screens/reservation_history_screen.dart';
 import '../../features/motor/screens/motorcycle_list_screen.dart';
 import '../../features/motor/screens/add_rental_screen.dart';
-import '../../features/motor/screens/rental_history_screen.dart';
 import '../../features/laundry/screens/laundry_list_screen.dart';
 import '../../features/room_service/screens/room_service_screen.dart';
 import '../../features/drinks/screens/drinks_screen.dart';
@@ -86,11 +85,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           final extra = state.extra as Map<String, dynamic>?;
           return AddRentalScreen(motorcycleId: extra?['motorcycleId'], plateNumber: extra?['plateNumber']);
         },
-      ),
-      GoRoute(
-        path: '/motor-rentals/history',
-        name: 'rental-history',
-        builder: (context, state) => const RentalHistoryScreen(),
       ),
       // Laundry
       GoRoute(

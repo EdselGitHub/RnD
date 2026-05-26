@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../providers/motor_provider.dart';
 import '../../payment/screens/payment_screen.dart';
 import '../../../core/models/motorcycle_model.dart';
+import '../../../core/models/motor_rental_model.dart';
 import '../../../core/constants/app_constants.dart';
 
 class AddRentalScreen extends ConsumerStatefulWidget {
@@ -59,6 +60,43 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
     if (_startDate == null || _endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Pilih tanggal sewa dan kembali')));
+      return;
+    }
+
+    // Check for overlapping rental dates (mirroring room reservation pattern)
+    // Use .future to ensure we wait for data if it's still loading
+    List<MotorRentalModel> rentals = [];
+    try {
+      rentals = await ref.read(motorRentalsStreamProvider.future);
+    } catch (_) {
+      // If error, assume empty or handle gracefully
+    }
+
+    final isOverlap = rentals.any((res) {
+      if (res.motorId != widget.motorcycleId || res.status != 'aktif') {
+        return false;
+      }
+      
+      // Strip time components to ensure pure date comparisons
+      final start1 = DateUtils.dateOnly(_startDate!);
+      final end1 = DateUtils.dateOnly(_endDate!);
+      final start2 = DateUtils.dateOnly(res.tanggal);
+      final end2 = DateUtils.dateOnly(res.tanggalSelesai);
+
+      // overlap condition: (startDate < res.tanggalSelesai && endDate > res.tanggal)
+      return start1.isBefore(end2) && end1.isAfter(start2);
+    });
+
+    if (isOverlap) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Motor sudah disewa pada tanggal tersebut. Silakan pilih tanggal lain.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
       return;
     }
 

@@ -42,59 +42,63 @@ class AppDrawer extends ConsumerWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                _DrawerItem(
-                  icon: Icons.dashboard_rounded,
-                  title: 'Dashboard',
-                  color: AppColors.primary,
-                  onTap: () => context.go('/dashboard'),
-                ),
-                const Divider(height: 1),
-                _DrawerItem(
-                  icon: Icons.hotel_rounded,
-                  title: 'Reservasi Kamar',
-                  color: AppColors.cardRoom,
-                  onTap: () => context.go('/rooms'),
-                ),
-                _DrawerItem(
-                  icon: Icons.two_wheeler_rounded,
-                  title: 'Penyewaan Motor',
-                  color: AppColors.cardMotor,
-                  onTap: () => context.go('/motorcycles'),
-                ),
-                _DrawerItem(
-                  icon: Icons.local_laundry_service_rounded,
-                  title: 'Laundry',
-                  color: AppColors.cardLaundry,
-                  onTap: () => context.go('/laundry'),
-                ),
+                if (userAsync.value?.role != 'petugas') ...[
+                  _DrawerItem(
+                    icon: Icons.dashboard_rounded,
+                    title: 'Dashboard',
+                    color: AppColors.primary,
+                    onTap: () => context.go('/dashboard'),
+                  ),
+                  const Divider(height: 1),
+                  _DrawerItem(
+                    icon: Icons.hotel_rounded,
+                    title: 'Reservasi Kamar',
+                    color: AppColors.cardRoom,
+                    onTap: () => context.go('/rooms'),
+                  ),
+                  _DrawerItem(
+                    icon: Icons.two_wheeler_rounded,
+                    title: 'Penyewaan Motor',
+                    color: AppColors.cardMotor,
+                    onTap: () => context.go('/motorcycles'),
+                  ),
+                  _DrawerItem(
+                    icon: Icons.local_laundry_service_rounded,
+                    title: 'Laundry',
+                    color: AppColors.cardLaundry,
+                    onTap: () => context.go('/laundry'),
+                  ),
+                ],
                 _DrawerItem(
                   icon: Icons.cleaning_services_rounded,
                   title: 'Room Service',
                   color: AppColors.secondary,
                   onTap: () => context.go('/room-service'),
                 ),
-                _DrawerItem(
-                  icon: Icons.local_drink_rounded,
-                  title: 'Minuman & Stok',
-                  color: AppColors.cardDrink,
-                  onTap: () => context.go('/drinks'),
-                ),
-                _DrawerItem(
-                  icon: Icons.money_off_rounded,
-                  title: 'Pengeluaran',
-                  color: AppColors.error,
-                  onTap: () {
-                    Navigator.pop(context);
-                    AppDrawer.showExpenseDialog(context);
-                  },
-                ),
-                if (userAsync.value?.role != 'karyawan')
+                if (userAsync.value?.role != 'petugas') ...[
                   _DrawerItem(
-                    icon: Icons.bar_chart_rounded,
-                    title: 'Laporan Keuangan',
-                    color: AppColors.cardFinance,
-                    onTap: () => context.go('/finance'),
+                    icon: Icons.local_drink_rounded,
+                    title: 'Minuman & Stok',
+                    color: AppColors.cardDrink,
+                    onTap: () => context.go('/drinks'),
                   ),
+                  _DrawerItem(
+                    icon: Icons.money_off_rounded,
+                    title: 'Pengeluaran',
+                    color: AppColors.error,
+                    onTap: () {
+                      Navigator.pop(context);
+                      AppDrawer.showExpenseDialog(context);
+                    },
+                  ),
+                  if (userAsync.value?.role != 'karyawan')
+                    _DrawerItem(
+                      icon: Icons.bar_chart_rounded,
+                      title: 'Laporan Keuangan',
+                      color: AppColors.cardFinance,
+                      onTap: () => context.go('/finance'),
+                    ),
+                ],
               ],
             ),
           ),

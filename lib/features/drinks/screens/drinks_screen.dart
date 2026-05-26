@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/drinks_provider.dart';
-import '../../payment/screens/payment_screen.dart';
 import '../../../core/models/drink_model.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../widgets/app_drawer.dart';
@@ -378,37 +377,30 @@ class DrinkTransactionScreen extends ConsumerStatefulWidget {
 class _DrinkTransactionScreenState
     extends ConsumerState<DrinkTransactionScreen> {
   int _quantity = 1;
-  final bool _isLoading = false;
+  bool _isLoading = false;
 
   Future<void> _sell(DrinkModel drink) async {
-    final total = drink.harga * _quantity;
-    
-    if (mounted) {
-      // Use Future.microtask to avoid '!_debugLocked' error during rebuild
-      Future.microtask(() {
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PaymentScreen(
-              totalAmount: total,
-              onPaymentSuccess: () async {
-                // Execute the actual sale ONLY after payment is confirmed
-                final userModel = await ref.read(currentUserModelProvider.future);
-                await ref.read(drinksNotifierProvider.notifier).sellDrink(
-                      drink: drink,
-                      quantity: _quantity,
-                      createdBy: userModel?.name ?? 'Unknown',
-                    );
-                
-                if (context.mounted) {
-                  context.go('/drinks');
-                }
-              },
-            ),
-          ),
-        );
-      });
+    setState(() => _isLoading = true);
+    try {
+      final userModel = await ref.read(currentUserModelProvider.future);
+      await ref.read(drinksNotifierProvider.notifier).sellDrink(
+            drink: drink,
+            quantity: _quantity,
+            createdBy: userModel?.name ?? 'Unknown',
+          );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Terjual $_quantity ${widget.drinkName}!'),
+            backgroundColor: AppColors.success));
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
+      }
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 

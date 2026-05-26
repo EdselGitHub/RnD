@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/laundry_provider.dart';
-import '../../payment/screens/payment_screen.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/stat_card.dart';
 import '../../../core/constants/app_constants.dart';
@@ -44,7 +43,7 @@ class LaundryListScreen extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Text('Laundry Room ${o.roomNumber}',
+                          Text('Laundry #${o.id.substring(0, 6)}',
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16)),
                           const Spacer(),
@@ -139,11 +138,12 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
+  final _idCtrl = TextEditingController();
   final _roomCtrl = TextEditingController();
   final _weightCtrl = TextEditingController();
   String _serviceType = 'regular';
   final double _hargaPerKG = 15000;
-  final bool _isLoading = false;
+  bool _isLoading = false;
 
   final _services = ['regular', 'express', 'dry clean'];
 
@@ -151,6 +151,7 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
   void dispose() {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
+    _idCtrl.dispose();
     _roomCtrl.dispose();
     _weightCtrl.dispose();
     super.dispose();
@@ -158,37 +159,30 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    
-    final estimatedPrice = double.parse(_weightCtrl.text) * _hargaPerKG;
-
-    if (mounted) {
-      Future.microtask(() {
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PaymentScreen(
-              totalAmount: estimatedPrice,
-              onPaymentSuccess: () async {
-                // Save to Firestore ONLY after payment is confirmed
-                await ref.read(laundryNotifierProvider.notifier).addOrder(
-                      guestName: _nameCtrl.text.trim(),
-                      guestPhone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
-                      guestIdNumber: null, // Removed as per request
-                      roomNumber: _roomCtrl.text.trim(),
-                      serviceType: _serviceType,
-                      weight: double.parse(_weightCtrl.text),
-                      hargaPerKG: _hargaPerKG,
-                    );
-                
-                if (context.mounted) {
-                  Navigator.pop(context); // Pop AddLaundryScreen
-                }
-              },
-            ),
-          ),
-        );
-      });
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(laundryNotifierProvider.notifier).addOrder(
+            guestName: _nameCtrl.text.trim(),
+            guestPhone: _phoneCtrl.text.trim(),
+            guestIdNumber: _idCtrl.text.trim(),
+            roomNumber: _roomCtrl.text.trim(),
+            serviceType: _serviceType,
+            weight: double.parse(_weightCtrl.text),
+            hargaPerKG: _hargaPerKG,
+          );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Order laundry berhasil disimpan!'),
+            backgroundColor: AppColors.success));
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
+      }
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -223,20 +217,29 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
                             prefixIcon: Icon(Icons.person_outlined)),
                         validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
                       ),
-                      TextFormField(
-                        controller: _roomCtrl,
-                        decoration: const InputDecoration(
-                            labelText: 'Nomer Kamar',
-                            prefixIcon: Icon(Icons.door_front_door_outlined)),
-                        validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
-                      ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _phoneCtrl,
                         keyboardType: TextInputType.phone,
                         decoration: const InputDecoration(
-                            labelText: 'No. HP (Opsional)',
+                            labelText: 'No. HP',
                             prefixIcon: Icon(Icons.phone_outlined)),
+                        validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _idCtrl,
+                        decoration: const InputDecoration(
+                            labelText: 'Kartu Identitas',
+                            prefixIcon: Icon(Icons.badge_outlined)),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _roomCtrl,
+                        decoration: const InputDecoration(
+                            labelText: 'Nomor Kamar',
+                            prefixIcon: Icon(Icons.meeting_room_outlined)),
+                        validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
                       ),
                     ],
                   ),

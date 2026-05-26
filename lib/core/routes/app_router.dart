@@ -24,9 +24,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = authState.value != null || 
           (authNotifierState.value != null);
       final isLoginPage = state.matchedLocation == '/login';
+      final isPetugas = authNotifierState.value?.role == 'petugas';
 
       if (!isLoggedIn && !isLoginPage) return '/login';
-      if (isLoggedIn && isLoginPage) return '/dashboard';
+      if (isLoggedIn && isLoginPage) {
+        // Petugas langsung ke room-service
+        if (isPetugas) return '/room-service';
+        return '/dashboard';
+      }
+
+      // Petugas hanya boleh akses room-service
+      if (isLoggedIn && isPetugas) {
+        final loc = state.matchedLocation;
+        if (!loc.startsWith('/room-service')) {
+          return '/room-service';
+        }
+      }
+
       return null;
     },
     routes: [

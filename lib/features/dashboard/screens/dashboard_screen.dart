@@ -23,6 +23,8 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text(AppStrings.appName),
         actions: [
+
+        
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(dashboardStatsProvider),
@@ -30,46 +32,6 @@ class DashboardScreen extends ConsumerWidget {
         ],
       ),
       drawer: const AppDrawer(),
-
-
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () async {
-      //     final stopwatch = Stopwatch()..start();
-      //     try {
-      //       await FirebaseFirestore.instance.collection('performance_test').get();
-            
-      //       stopwatch.stop();
-      //       final msg = '✅ Waktu Fetch: ${stopwatch.elapsedMilliseconds} ms';
-      //       debugPrint(msg);
-            
-      //       if (context.mounted) {
-      //         ScaffoldMessenger.of(context).showSnackBar(
-      //           SnackBar(
-      //             content: Text(msg),
-      //             backgroundColor: Colors.green,
-      //           ),
-      //         );
-      //       }
-      //     } catch (e) {
-      //       final msg = '❌ Error saat fetch: $e';
-      //       debugPrint(msg);
-            
-      //       if (context.mounted) {
-      //         ScaffoldMessenger.of(context).showSnackBar(
-      //           SnackBar(
-      //             content: Text(msg),
-      //             backgroundColor: AppColors.error,
-      //           ),
-      //         );
-      //       }
-      //     }
-      //   },
-      //   backgroundColor: AppColors.primary,
-      //   tooltip: 'Test Firebase Get Performance',
-      //   child: const Icon(Icons.speed, color: Colors.white),
-      // ),
-
-
       body: statsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
@@ -214,6 +176,69 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ),
       ),
+
+
+      // fetch testing
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () async {
+      //     final stopwatch = Stopwatch()..start();
+      //     try {
+      //       await FirebaseFirestore.instance.collection('performance_test').get();
+      //       stopwatch.stop();
+      //       final msg = '✅ Waktu Fetch: ${stopwatch.elapsedMilliseconds} ms';
+      //       debugPrint(msg);
+      //       if (context.mounted) {
+      //         ScaffoldMessenger.of(context).showSnackBar(
+      //           SnackBar(
+      //             content: Text(msg),
+      //             backgroundColor: AppColors.success,
+      //           ),
+      //         );
+      //       }
+      //     } catch (e) {
+      //       final msg = '❌ Error saat fetch: $e';
+      //       debugPrint(msg);
+      //       if (context.mounted) {
+      //         ScaffoldMessenger.of(context).showSnackBar(
+      //           SnackBar(
+      //             content: Text(msg),
+      //             backgroundColor: AppColors.error,
+      //           ),
+      //         );
+      //       }
+      //     }
+      //   },
+      //   backgroundColor: AppColors.primary,
+      //   tooltip: 'Test Firebase Fetch Performance',
+      //   child: const Icon(Icons.speed, color: Colors.white),
+      // ),
+
+
+//insert  
+          // floatingActionButton: FloatingActionButton(
+          //   onPressed: () async {
+          //     final stopwatch = Stopwatch()..start();
+          //     try {
+          //       await FirebaseFirestore.instance.collection('performance_test').add({
+          //         'test_data': 'Hello Firebase',
+          //         'created_at': FieldValue.serverTimestamp(),
+          //       });
+          //       stopwatch.stop();
+          //       final msg = '✅ Waktu Insert: ${stopwatch.elapsedMilliseconds} ms';
+          //       print(msg);
+          //       if (context.mounted) {
+          //         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: AppColors.success));
+          //       }
+          //     } catch (e) {
+          //       final msg = '❌ Error saat insert: $e';
+          //       print(msg);
+          //       if (context.mounted) {
+          //         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: AppColors.error));
+          //       }
+          //     }
+          //   },
+          // ),
+
     );
   }
 }

@@ -35,7 +35,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _passwordController.text,
           );
       if (!mounted) return;
-      context.go('/dashboard');
+      final user = ref.read(authNotifierProvider).value;
+      if (user?.role == 'petugas') {
+        context.go('/room-service');
+      } else {
+        context.go('/dashboard');
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {

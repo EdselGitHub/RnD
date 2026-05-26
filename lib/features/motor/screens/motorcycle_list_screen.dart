@@ -70,7 +70,7 @@ class MotorcycleListScreen extends ConsumerWidget {
                       ),
                       title: Text(m.nama,
                           style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('${currency.format(m.harga)}/hari',
+                      subtitle: Text(currency.format(m.harga) + '/hari',
                           style: const TextStyle(fontSize: 12)),
                       trailing: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -88,7 +88,7 @@ class MotorcycleListScreen extends ConsumerWidget {
                                     : AppColors.occupied,
                           ),
                           if (isAvailable) ...[
-                            const SizedBox(height: 7),
+                            const SizedBox(height: 6),
                             GestureDetector(
                               onTap: () => context.push('/motor-rentals/add',
                                   extra: {'motorcycleId': m.id, 'plateNumber': m.nama}),
@@ -100,7 +100,7 @@ class MotorcycleListScreen extends ConsumerWidget {
                             ),
                           ],
                           if (m.status == 'disewa') ...[
-                            const SizedBox(height: 7),
+                            const SizedBox(height: 6),
                             GestureDetector(
                               onTap: () async {
                                 await ref

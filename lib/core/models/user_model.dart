@@ -4,7 +4,7 @@ class UserModel {
   final String uid;
   final String email;
   final String name;
-  final String role; // 'admin' | 'owner' | 'karyawan'
+  final String role; // 'admin' | 'owner' | 'karyawan' | 'petugas'
   final DateTime createdAt;
 
   const UserModel({

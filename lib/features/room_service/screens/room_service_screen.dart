@@ -13,7 +13,6 @@ class RoomServiceScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final schedulesAsync = ref.watch(roomServicesStreamProvider);
-    final roomsAsync = ref.watch(roomsStreamProvider);
     final df = DateFormat('dd MMM yyyy • HH:mm', 'id_ID');
 
     return Scaffold(
@@ -35,17 +34,6 @@ class RoomServiceScreen extends ConsumerWidget {
               final s = schedules[i];
               final isSelesai = s.status == 'selesai';
               final isProses = s.status == 'proses';
-              final roomName = roomsAsync.maybeWhen(
-                data: (rooms) {
-                  try {
-                    return rooms.firstWhere((r) => r.id == s.roomId).nama;
-                  } catch (_) {
-                    return s.id.substring(0, 6);
-                  }
-                },
-                orElse: () => s.id.substring(0, 6),
-              );
-              
               return Card(
                 margin: const EdgeInsets.only(bottom: 10),
                 child: ListTile(
@@ -72,12 +60,8 @@ class RoomServiceScreen extends ConsumerWidget {
                               : AppColors.info,
                     ),
                   ),
-                  title: Text(
-                    roomName.length > 6 && !roomName.toLowerCase().startsWith('room') 
-                        ? 'Cleaning $roomName'
-                        : 'Cleaning Room $roomName',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  title: Text('Cleaning #${s.id.substring(0, 6)}',
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

@@ -30,7 +30,7 @@ class AuthService {
     final userModel = await getUserModel(credential.user!.uid);
     
     // Cek apakah akun memiliki role yang diizinkan (admin, owner, karyawan)
-    if (userModel != null && !['admin', 'owner', 'karyawan'].contains(userModel.role)) {
+    if (userModel != null && !['admin', 'owner', 'karyawan', 'petugas'].contains(userModel.role)) {
       await _auth.signOut();
       throw Exception('Akses ditolak. Role tidak diizinkan.');
     }

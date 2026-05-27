@@ -9,7 +9,7 @@ import '../providers/reservation_provider.dart';
 import '../../../core/models/guest_model.dart';
 import '../../../core/models/room_model.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../core/services/cloudinary_service.dart';
+import '../../../core/services/storage_service.dart';
 
 class AddReservationScreen extends ConsumerStatefulWidget {
   final String? roomId;
@@ -88,12 +88,12 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
       return;
     }
 
-    // Tampilkan loading indicator cloudinary
+    // Tampilkan loading indicator
     setState(() => _isLoading = true);
 
     try {
-      // Upload foto ke Cloudinary
-      String? imageUrl = await CloudinaryService.uploadImage(_idCardImage!);
+      // Upload foto ke Firebase Storage
+      String? imageUrl = await StorageService.uploadKartuIdentitas(_idCardImage!);
 
       if (imageUrl == null) {
         if (mounted) {
@@ -147,7 +147,7 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
         id: '',
         nama: _nameCtrl.text.trim(),
         noHp: _phoneCtrl.text.trim(),
-        kartuIdentitas: imageUrl, // Gunakan URL dari Cloudinary
+        kartuIdentitas: imageUrl, // Gunakan URL dari Firebase Storage
       );
 
     final nights = _checkOut!.difference(_checkIn!).inDays;

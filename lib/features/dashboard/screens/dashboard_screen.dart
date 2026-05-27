@@ -77,7 +77,7 @@ class DashboardScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
 
                 const Text('Ringkasan Hari Ini',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

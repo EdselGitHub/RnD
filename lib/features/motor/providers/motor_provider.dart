@@ -63,11 +63,9 @@ class MotorNotifier extends AsyncNotifier<void> {
     required String unit,
     required DateTime startDate,
     required DateTime endDate,
+    required double total,
   }) async {
     final db = ref.read(firestoreServiceProvider).db;
-    final days = endDate.difference(startDate).inDays;
-    final hargaPerhari = 150000.0;
-    final total = hargaPerhari * days;
 
     // Save guest to Tamu collection
     final guestRef = await db.collection('Tamu').add({
@@ -80,7 +78,7 @@ class MotorNotifier extends AsyncNotifier<void> {
     await db.collection('Motor_Sewa').add({
       'motor_id': db.collection('Motor').doc(motorcycle.id),
       'tamu_id': db.collection('Tamu').doc(guestRef.id),
-      'harga_perhari': hargaPerhari,
+      'harga_perhari': motorcycle.harga,
       'status': 'aktif',
       'tanggal': Timestamp.fromDate(startDate),
       'tanggal_selesai': Timestamp.fromDate(endDate),

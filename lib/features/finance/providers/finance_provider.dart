@@ -31,12 +31,11 @@ final financeRecordsProvider = StreamProvider<List<FinanceRecordModel>>((ref) {
   final streamController = StreamController<List<FinanceRecordModel>>();
 
   QuerySnapshot? snap1;
-  QuerySnapshot? snap2;
 
   void tryEmit() {
-    if (snap1 == null || snap2 == null) return;
+    if (snap1 == null) return;
 
-    final allDocs = <DocumentSnapshot>[...snap1!.docs, ...snap2!.docs];
+    final allDocs = <DocumentSnapshot>[...snap1!.docs];
     
     final records = allDocs
         .map((d) => FinanceRecordModel.fromDoc(d))
@@ -54,18 +53,13 @@ final financeRecordsProvider = StreamProvider<List<FinanceRecordModel>>((ref) {
   }
 
   streamController.onListen = () {
-    final sub1 = db.collection('Transkasi_Keuangan').snapshots().listen((snap) {
+    final sub1 = db.collection('Transaksi_Keuangan').snapshots().listen((snap) {
       snap1 = snap;
-      tryEmit();
-    });
-    final sub2 = db.collection('Transaksi_Keuangan').snapshots().listen((snap) {
-      snap2 = snap;
       tryEmit();
     });
 
     streamController.onCancel = () {
       sub1.cancel();
-      sub2.cancel();
     };
   };
 

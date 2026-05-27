@@ -7,6 +7,7 @@ class FinanceRecordModel {
   final String? deskripsi;
   final DateTime tanggal;
   final String tipe; // 'income' | 'expense'
+  final String? kartuIdentitas; // Field baru untuk path KTP
 
   const FinanceRecordModel({
     required this.id,
@@ -15,6 +16,7 @@ class FinanceRecordModel {
     this.deskripsi,
     required this.tanggal,
     required this.tipe,
+    this.kartuIdentitas,
   });
 
   bool get isIncome => tipe == 'income';
@@ -35,6 +37,7 @@ class FinanceRecordModel {
       deskripsi: map['deskripsi'] as String?,
       tanggal: (map['tanggal'] as Timestamp?)?.toDate() ?? DateTime.now(),
       tipe: map['tipe'] as String? ?? 'income',
+      kartuIdentitas: map['kartu_identitas'] as String?,
     );
   }
 

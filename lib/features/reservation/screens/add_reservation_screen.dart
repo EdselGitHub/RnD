@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -27,7 +28,7 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   
-  File? _idCardImage;
+  XFile? _idCardImage;
   final _imagePicker = ImagePicker();
 
   DateTime? _checkIn;
@@ -41,12 +42,42 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    // final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
-    final picked = await _imagePicker.pickImage(source: ImageSource.camera);
+  Future<void> _pickImage(ImageSource source) async {
+    final picked = await _imagePicker.pickImage(source: source);
     if (picked != null) {
-      setState(() => _idCardImage = File(picked.path));
+      setState(() => _idCardImage = picked);
     }
+  }
+
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimensions.radiusL)),
+      ),
+      builder: (_) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Ambil dari Kamera'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Pilih dari Galeri'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _pickDate(bool isCheckIn) async {
@@ -114,8 +145,13 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
       
       bool isOverlap = reservations.any((res) {
         if (res.roomId != widget.roomId || res.status != 'aktif') return false;
+        // Strip time components to ensure pure date comparisons
+        final checkInDate = DateUtils.dateOnly(_checkIn!);
+        final checkOutDate = DateUtils.dateOnly(_checkOut!);
+        final resCheckin = DateUtils.dateOnly(res.checkin);
+        final resCheckout = DateUtils.dateOnly(res.checkout);
         // overlap condition: (checkIn < res.checkout && checkOut > res.checkin)
-        return _checkIn!.isBefore(res.checkout) && _checkOut!.isAfter(res.checkin);
+        return checkInDate.isBefore(resCheckout) && checkOutDate.isAfter(resCheckin);
       });
 
       if (isOverlap) {
@@ -181,6 +217,7 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
                         guest: guest,
                         checkIn: _checkIn!,
                         checkOut: _checkOut!,
+                        total: totalPrice,
                       );
                   
                   if (context.mounted) {
@@ -398,7 +435,7 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
                           ),
                           const SizedBox(height: 8),
                           InkWell(
-                            onTap: _pickImage,
+                            onTap: _showImagePickerOptions,
                             borderRadius: BorderRadius.circular(AppDimensions.radiusM),
                             child: Container(
                               width: double.infinity,
@@ -411,7 +448,9 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
                               child: _idCardImage != null
                                   ? ClipRRect(
                                       borderRadius: BorderRadius.circular(AppDimensions.radiusM),
-                                      child: Image.file(_idCardImage!, fit: BoxFit.cover),
+                                      child: kIsWeb 
+                                          ? Image.network(_idCardImage!.path, fit: BoxFit.cover)
+                                          : Image.file(File(_idCardImage!.path), fit: BoxFit.cover),
                                     )
                                   : Column(
                                       mainAxisAlignment: MainAxisAlignment.center,

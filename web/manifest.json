@@ -1,6 +1,6 @@
 {
-    "name": "rnd_project",
-    "short_name": "rnd_project",
+    "name": "RnD Control",
+    "short_name": "RnD Control",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

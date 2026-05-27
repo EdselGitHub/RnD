@@ -25,7 +25,7 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
   final _unitCtrl = TextEditingController();
   DateTime? _startDate;
   DateTime? _endDate;
-  final bool _isLoading = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -100,47 +100,63 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
       return;
     }
 
-    final motorsAsync = ref.read(motorcyclesStreamProvider);
-    final motors = motorsAsync.value ?? [];
-    final motor = motors.firstWhere(
-      (m) => m.id == widget.motorcycleId,
-      orElse: () => MotorcycleModel(
-          id: widget.motorcycleId ?? '',
-          nama: widget.plateNumber ?? '',
-          harga: 0,
-          status: 'tersedia'),
-    );
+    setState(() => _isLoading = true);
 
-    final days = _endDate!.difference(_startDate!).inDays;
-    final totalPrice = days * motor.harga;
+    try {
+      final motorsAsync = ref.read(motorcyclesStreamProvider);
+      final motors = motorsAsync.value ?? [];
+      final motor = motors.firstWhere(
+        (m) => m.id == widget.motorcycleId,
+        orElse: () => MotorcycleModel(
+            id: widget.motorcycleId ?? '',
+            nama: widget.plateNumber ?? '',
+            harga: 0,
+            status: 'tersedia'),
+      );
 
-    if (mounted) {
-      Future.microtask(() {
-        if (!mounted) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PaymentScreen(
-              totalAmount: totalPrice.toDouble(),
-              onPaymentSuccess: () async {
-                // Save ONLY after payment is confirmed
-                await ref.read(motorNotifierProvider.notifier).addRental(
-                      motorcycle: motor,
-                      guestName: _nameCtrl.text.trim(),
-                      guestPhone: _phoneCtrl.text.trim(),
-                      unit: _unitCtrl.text.trim(),
-                      startDate: _startDate!,
-                      endDate: _endDate!,
-                    );
-                
-                if (context.mounted) {
-                  context.go('/motorcycles');
-                }
-              },
+      final days = _endDate!.difference(_startDate!).inDays;
+      final totalPrice = days * motor.harga;
+
+      if (mounted) {
+        Future.microtask(() {
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PaymentScreen(
+                totalAmount: totalPrice.toDouble(),
+                onPaymentSuccess: () async {
+                  // Save ONLY after payment is confirmed
+                  await ref.read(motorNotifierProvider.notifier).addRental(
+                        motorcycle: motor,
+                        guestName: _nameCtrl.text.trim(),
+                        guestPhone: _phoneCtrl.text.trim(),
+                        unit: _unitCtrl.text.trim(),
+                        startDate: _startDate!,
+                        endDate: _endDate!,
+                        total: totalPrice.toDouble(),
+                      );
+                  
+                  if (context.mounted) {
+                    context.go('/motorcycles');
+                  }
+                },
+              ),
             ),
+          );
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
           ),
         );
-      });
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

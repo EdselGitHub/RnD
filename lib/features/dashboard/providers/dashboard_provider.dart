@@ -80,11 +80,6 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
   final motorsStream = db.collection('Motor').snapshots();
   final motorSewaStream = db.collection('Motor_Sewa').snapshots();
   final financeStream1 = db
-      .collection('Transkasi_Keuangan')
-      .where('tanggal', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
-      .where('tanggal', isLessThan: Timestamp.fromDate(endOfDay))
-      .snapshots();
-  final financeStream2 = db
       .collection('Transaksi_Keuangan')
       .where('tanggal', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
       .where('tanggal', isLessThan: Timestamp.fromDate(endOfDay))
@@ -98,13 +93,12 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
   QuerySnapshot? motorsSnap;
   QuerySnapshot? motorSewaSnap;
   QuerySnapshot? financeSnap1;
-  QuerySnapshot? financeSnap2;
   QuerySnapshot? drinksSnap;
   QuerySnapshot? reservasiSnap;
 
   void tryEmit() {
     if (roomsSnap == null || motorsSnap == null || motorSewaSnap == null ||
-        financeSnap1 == null || financeSnap2 == null ||
+        financeSnap1 == null ||
         drinksSnap == null || reservasiSnap == null) {
       return;
     }
@@ -181,15 +175,6 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
         todayIncome += amount;
       }
     }
-    for (final doc in financeSnap2!.docs) {
-      final data = doc.data() as Map<String, dynamic>;
-      final amount = (data['jumlah'] as num).toDouble();
-      if (data['tipe'] == 'expense') {
-        todayIncome -= amount;
-      } else {
-        todayIncome += amount;
-      }
-    }
 
     final lowStockDrinks = drinksSnap!.docs
         .map((d) => (d.data() as Map<String, dynamic>)['nama'] as String)
@@ -217,7 +202,6 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
       final sub2 = motorsStream.listen((snap) { motorsSnap = snap; tryEmit(); });
       final sub3 = motorSewaStream.listen((snap) { motorSewaSnap = snap; tryEmit(); });
       final sub4 = financeStream1.listen((snap) { financeSnap1 = snap; tryEmit(); });
-      final sub5 = financeStream2.listen((snap) { financeSnap2 = snap; tryEmit(); });
       final sub6 = drinksStream.listen((snap) { drinksSnap = snap; tryEmit(); });
       final sub7 = reservasiStream.listen((snap) { reservasiSnap = snap; tryEmit(); });
 
@@ -226,7 +210,6 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
         sub2.cancel();
         sub3.cancel();
         sub4.cancel();
-        sub5.cancel();
         sub6.cancel();
         sub7.cancel();
       };

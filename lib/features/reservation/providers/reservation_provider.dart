@@ -64,29 +64,11 @@ class ReservationNotifier extends AsyncNotifier<void> {
     required GuestModel guest,
     required DateTime checkIn,
     required DateTime checkOut,
+    required double total,
   }) async {
     final db = ref.read(firestoreServiceProvider).db;
 
-    final nights = checkOut.difference(checkIn).inDays;
-    
-    double total = 0;
-    int remainingNights = nights;
-
-    if (room.hargaBulanan > 0 && remainingNights >= 30) {
-      final months = remainingNights ~/ 30;
-      total += months * room.hargaBulanan;
-      remainingNights %= 30;
-    }
-
-    if (room.hargaMingguan > 0 && remainingNights >= 7) {
-      final weeks = remainingNights ~/ 7;
-      total += weeks * room.hargaMingguan;
-      remainingNights %= 7;
-    }
-
-    total += remainingNights * room.harga;
-
-    // Save guest to Tamu collection (URL sudah dari Cloudinary)
+    // Save guest to Tamu collection
     final guestMap = guest.toMap();
     final guestRef = await db.collection('Tamu').add(guestMap);
 
@@ -110,6 +92,7 @@ class ReservationNotifier extends AsyncNotifier<void> {
       'jumlah': total,
       'tanggal': Timestamp.fromDate(DateTime.now()),
       'tipe': 'income',
+      'kartu_identitas': guest.kartuIdentitas, // Simpan referensi KTP
     });
   }
 

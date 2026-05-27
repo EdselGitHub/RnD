@@ -43,7 +43,7 @@ class LaundryListScreen extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Text('Laundry #${o.id.substring(0, 6)}',
+                          Text(o.roomNumber.isNotEmpty ? 'Laundry Room ${o.roomNumber}' : 'Laundry #${o.id.substring(0, 6)}',
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16)),
                           const Spacer(),
@@ -142,10 +142,10 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
   final _roomCtrl = TextEditingController();
   final _weightCtrl = TextEditingController();
   String _serviceType = 'regular';
-  final double _hargaPerKG = 15000;
+  double _hargaPerKG = 15000;
   bool _isLoading = false;
 
-  final _services = ['regular', 'express', 'dry clean'];
+  final _services = ['regular', 'express'];
 
   @override
   void dispose() {
@@ -261,7 +261,16 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
                         items: _services
                             .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                             .toList(),
-                        onChanged: (v) => setState(() => _serviceType = v!),
+                        onChanged: (v) {
+                          setState(() {
+                            _serviceType = v!;
+                            if (v == 'express') {
+                              _hargaPerKG = 20000;
+                            } else {
+                              _hargaPerKG = 15000;
+                            }
+                          });
+                        },
                       ),
                       const SizedBox(height: 12),
                       TextFormField(

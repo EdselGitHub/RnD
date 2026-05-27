@@ -14,6 +14,7 @@ import '../providers/finance_provider.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/stat_card.dart';
 import '../../../core/constants/app_constants.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class FinanceReportScreen extends ConsumerStatefulWidget {
   const FinanceReportScreen({super.key});
@@ -357,14 +358,60 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
                                           style: const TextStyle(fontSize: 13)),
                                       subtitle: Text(df.format(r.date),
                                           style: const TextStyle(fontSize: 11)),
-                                      trailing: Text(
-                                        currency.format(r.amount),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: r.isIncome
-                                              ? AppColors.success
-                                              : AppColors.error,
-                                        ),
+                                      trailing: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            currency.format(r.amount),
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: r.isIncome
+                                                  ? AppColors.success
+                                                  : AppColors.error,
+                                            ),
+                                          ),
+                                          if (r.kartuIdentitas != null && r.kartuIdentitas!.isNotEmpty) ...[
+                                            const SizedBox(width: 8),
+                                            IconButton(
+                                              icon: const Icon(Icons.badge_outlined, size: 20, color: AppColors.primary),
+                                              tooltip: 'Lihat Kartu Identitas',
+                                              onPressed: () async {
+                                                showDialog(
+                                                  context: context,
+                                                  barrierDismissible: false,
+                                                  builder: (_) => const Center(child: CircularProgressIndicator()),
+                                                );
+                                                try {
+                                                  // get download url since admin has read access
+                                                  final url = await FirebaseStorage.instance
+                                                      .ref(r.kartuIdentitas)
+                                                      .getDownloadURL();
+                                                  if (!context.mounted) return;
+                                                  Navigator.pop(context); // close loading
+                                                  showDialog(
+                                                    context: context,
+                                                    builder: (_) => AlertDialog(
+                                                      title: const Text('Kartu Identitas'),
+                                                      content: Image.network(url),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () => Navigator.pop(context),
+                                                          child: const Text('Tutup'),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                } catch (e) {
+                                                  if (!context.mounted) return;
+                                                  Navigator.pop(context); // close loading
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(content: Text('Gagal memuat KTP: $e')),
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                     ),
                                   )),

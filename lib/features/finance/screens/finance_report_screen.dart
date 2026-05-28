@@ -14,7 +14,9 @@ import '../providers/finance_provider.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/stat_card.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/models/finance_record_model.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FinanceReportScreen extends ConsumerStatefulWidget {
   const FinanceReportScreen({super.key});
@@ -82,9 +84,10 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
         NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     final df = DateFormat('dd MMM yyyy', 'id_ID');
 
-    const categories = ['penjualan kamar', 'motor', 'laundry', 'minuman', 'pengeluaran'];
+    const categories = ['penjualan kamar', 'kamar', 'motor', 'laundry', 'minuman', 'pengeluaran'];
     const categoryColors = {
       'penjualan kamar': AppColors.cardRoom,
+      'kamar': AppColors.cardRoom,
       'motor': AppColors.cardMotor,
       'laundry': AppColors.cardLaundry,
       'minuman': AppColors.cardDrink,
@@ -92,6 +95,7 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
     };
     const categoryLabels = {
       'penjualan kamar': 'Kamar',
+      'kamar': 'Kamar',
       'motor': 'Motor',
       'laundry': 'Laundry',
       'minuman': 'Minuman',
@@ -354,8 +358,12 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
                                           size: 20,
                                         ),
                                       ),
-                                      title: Text(r.description,
-                                          style: const TextStyle(fontSize: 13)),
+                                      title: r.description == 'kamar' 
+                                          ? FutureBuilder<String>(
+                                              future: _resolveRoomName(r),
+                                              builder: (ctx, snap) => Text(snap.data ?? r.description, style: const TextStyle(fontSize: 13))
+                                            )
+                                          : Text(r.description, style: const TextStyle(fontSize: 13)),
                                       subtitle: Text(df.format(r.date),
                                           style: const TextStyle(fontSize: 11)),
                                       trailing: Row(
@@ -370,7 +378,7 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
                                                   : AppColors.error,
                                             ),
                                           ),
-                                          if (r.kartuIdentitas != null && r.kartuIdentitas!.isNotEmpty) ...[
+                                          if ((r.kartuIdentitas != null && r.kartuIdentitas!.isNotEmpty) || r.category == 'kamar') ...[
                                             const SizedBox(width: 8),
                                             IconButton(
                                               icon: const Icon(Icons.badge_outlined, size: 20, color: AppColors.primary),
@@ -382,10 +390,32 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
                                                   builder: (_) => const Center(child: CircularProgressIndicator()),
                                                 );
                                                 try {
-                                                  // get download url since admin has read access
-                                                  final url = await FirebaseStorage.instance
-                                                      .ref(r.kartuIdentitas)
-                                                      .getDownloadURL();
+                                                  String? finalUrl = r.kartuIdentitas;
+                                                  if (finalUrl == null || finalUrl.isEmpty) {
+                                                    final resDocs = await FirebaseFirestore.instance.collection('Reservasi').where('total', isEqualTo: r.amount).get();
+                                                    for (var doc in resDocs.docs) {
+                                                      final data = doc.data();
+                                                      final time = (data['created_at'] as Timestamp?)?.toDate();
+                                                      if (time != null && time.difference(r.date).abs().inMinutes < 120) {
+                                                        final tamuId = data['tamu_id'];
+                                                        if (tamuId is String) {
+                                                          final tamuDoc = await FirebaseFirestore.instance.collection('Tamu').doc(tamuId).get();
+                                                          finalUrl = tamuDoc.data()?['kartu_identitas'] as String?;
+                                                        } else if (tamuId is DocumentReference) {
+                                                          final tamuDoc = await tamuId.get();
+                                                          finalUrl = (tamuDoc.data() as Map<String, dynamic>?)?['kartu_identitas'] as String?;
+                                                        }
+                                                        break;
+                                                      }
+                                                    }
+                                                  }
+                                                  
+                                                  if (finalUrl == null || finalUrl.isEmpty) throw Exception('Foto KTP tidak tersedia untuk data lama ini.');
+                                                  
+                                                  final url = finalUrl.startsWith('http') 
+                                                      ? finalUrl 
+                                                      : await FirebaseStorage.instance.ref(finalUrl).getDownloadURL();
+                                                      
                                                   if (!context.mounted) return;
                                                   Navigator.pop(context); // close loading
                                                   showDialog(
@@ -433,6 +463,7 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
     if (category == 'pengeluaran') return Icons.money_off_rounded;
     switch (category) {
       case 'penjualan kamar':
+      case 'kamar':
         return Icons.hotel_rounded;
       case 'motor':
         return Icons.two_wheeler_rounded;
@@ -443,6 +474,29 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
       default:
         return Icons.payments_rounded;
     }
+  }
+
+  Future<String> _resolveRoomName(FinanceRecordModel r) async {
+    try {
+      final resDocs = await FirebaseFirestore.instance.collection('Reservasi').where('total', isEqualTo: r.amount).get();
+      for (var doc in resDocs.docs) {
+        final data = doc.data();
+        final time = (data['created_at'] as Timestamp?)?.toDate();
+        if (time != null && time.difference(r.date).abs().inMinutes < 120) {
+           final roomId = data['room_id'];
+           if (roomId is String) {
+              final roomDoc = await FirebaseFirestore.instance.collection('Ruangan').doc(roomId).get();
+              final roomName = roomDoc.data()?['nama'] as String?;
+              if (roomName != null) return 'Penjualan kamar $roomName';
+           } else if (roomId is DocumentReference) {
+              final roomDoc = await roomId.get();
+              final roomName = (roomDoc.data() as Map<String, dynamic>?)?['nama'] as String?;
+              if (roomName != null) return 'Penjualan kamar $roomName';
+           }
+        }
+      }
+    } catch (_) {}
+    return 'kamar';
   }
 }
 

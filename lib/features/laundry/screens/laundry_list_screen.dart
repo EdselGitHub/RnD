@@ -43,7 +43,7 @@ class LaundryListScreen extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Text(o.roomNumber.isNotEmpty ? 'Laundry Room ${o.roomNumber}' : 'Laundry #${o.id.substring(0, 6)}',
+                          Text('Laundry #${o.id.substring(0, 6)}',
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16)),
                           const Spacer(),
@@ -139,21 +139,21 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _idCtrl = TextEditingController();
-  final _roomCtrl = TextEditingController();
   final _weightCtrl = TextEditingController();
+  final _roomCtrl = TextEditingController();
   String _serviceType = 'regular';
-  double _hargaPerKG = 15000;
+  final double _hargaPerKG = 15000;
   bool _isLoading = false;
 
-  final _services = ['regular', 'express'];
+  final _services = ['regular', 'express', 'dry clean'];
 
   @override
   void dispose() {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
     _idCtrl.dispose();
-    _roomCtrl.dispose();
     _weightCtrl.dispose();
+    _roomCtrl.dispose();
     super.dispose();
   }
 
@@ -237,7 +237,7 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
                       TextFormField(
                         controller: _roomCtrl,
                         decoration: const InputDecoration(
-                            labelText: 'Nomor Kamar',
+                            labelText: 'No. Kamar',
                             prefixIcon: Icon(Icons.meeting_room_outlined)),
                         validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
                       ),
@@ -261,16 +261,7 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
                         items: _services
                             .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                             .toList(),
-                        onChanged: (v) {
-                          setState(() {
-                            _serviceType = v!;
-                            if (v == 'express') {
-                              _hargaPerKG = 20000;
-                            } else {
-                              _hargaPerKG = 15000;
-                            }
-                          });
-                        },
+                        onChanged: (v) => setState(() => _serviceType = v!),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(

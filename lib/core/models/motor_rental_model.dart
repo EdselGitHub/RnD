@@ -37,7 +37,7 @@ class MotorRentalModel {
       hargaPerhari: (map['harga_perhari'] as num?)?.toDouble() ?? 150000.0,
       status: map['status'] as String? ?? 'aktif',
       tanggal: (map['tanggal'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      tanggalSelesai: (map['tanggal_selesai'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      tanggalSelesai: (map['tanggal_selesai'] as Timestamp?)?.toDate() ?? DateTime(2099),
       pembuatan: (map['pembuatan'] as Timestamp?)?.toDate() ?? DateTime.now(),
       total: (map['total'] as num?)?.toDouble() ?? 0.0,
       unit: map['unit'] as String? ?? '',

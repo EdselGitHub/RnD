@@ -32,6 +32,7 @@ class RoomServiceModel {
       roomId: map['room_id'] is DocumentReference
           ? (map['room_id'] as DocumentReference).id
           : map['room_id'] as String? ?? '',
+      roomNumber: map['room_number'] as String? ?? '',
       deskripsi: map['deskripsi'] as String? ?? '',
       jadwal: (map['jadwal'] as Timestamp?)?.toDate() ?? DateTime.now(),
       pembuatan: (map['pembuatan'] as Timestamp?)?.toDate() ?? DateTime.now(),

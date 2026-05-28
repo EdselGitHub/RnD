@@ -138,7 +138,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 const Text(
-                                  '123 456 7890',
+                                  '1420127452',
                                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5),
                                 ),
                                 IconButton(
@@ -151,7 +151,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                 ),
                               ],
                             ),
-                            const Text('a.n. Dewi Sri Guesthouse', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                            const Text('a.n. Ronny Pangalela', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                           ],
                         ),
                       ),
@@ -160,40 +160,40 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
             const SizedBox(height: 12),
 
-            // QRIS Option
-            _PaymentMethodCard(
-              title: 'QRIS',
-              icon: Icons.qr_code_2,
-              isSelected: _selectedMethod == 'qris',
-              onTap: () => setState(() => _selectedMethod = 'qris'),
-              child: _selectedMethod == 'qris'
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
-                      child: Center(
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 200,
-                              height: 200,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(AppDimensions.radiusM),
-                                border: Border.all(color: Colors.grey.shade300),
-                              ),
-                              child: const Icon(Icons.qr_code_2, size: 150, color: Colors.black87),
-                            ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Scan QR Code di atas menggunakan aplikasi mobile banking atau e-wallet Anda.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
+            // // QRIS Option
+            // _PaymentMethodCard(
+            //   title: 'QRIS',
+            //   icon: Icons.qr_code_2,
+            //   isSelected: _selectedMethod == 'qris',
+            //   onTap: () => setState(() => _selectedMethod = 'qris'),
+            //   child: _selectedMethod == 'qris'
+            //       ? Padding(
+            //           padding: const EdgeInsets.only(top: 16.0),
+            //           child: Center(
+            //             child: Column(
+            //               children: [
+            //                 Container(
+            //                   width: 200,
+            //                   height: 200,
+            //                   decoration: BoxDecoration(
+            //                     color: Colors.white,
+            //                     borderRadius: BorderRadius.circular(AppDimensions.radiusM),
+            //                     border: Border.all(color: Colors.grey.shade300),
+            //                   ),
+            //                   child: const Icon(Icons.qr_code_2, size: 150, color: Colors.black87),
+            //                 ),
+            //                 const SizedBox(height: 12),
+            //                 const Text(
+            //                   'Scan QR Code di atas menggunakan aplikasi mobile banking atau e-wallet Anda.',
+            //                   textAlign: TextAlign.center,
+            //                   style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            //                 ),
+            //               ],
+            //             ),
+            //           ),
+            //         )
+            //       : null,
+            // ),
           ],
         ),
       ),

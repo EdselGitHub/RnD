@@ -110,6 +110,19 @@ class MotorNotifier extends AsyncNotifier<void> {
   /// Set motor status langsung ke 'tersedia' dari daftar motor
   Future<void> setMotorTersedia(String motorId) async {
     final db = ref.read(firestoreServiceProvider).db;
+    
+    // Ubah status sewa yang aktif menjadi selesai agar stream tidak mengubahnya kembali menjadi 'disewa'
+    final rentalsSnap = await db.collection('Motor_Sewa').where('status', isEqualTo: 'aktif').get();
+    for (final doc in rentalsSnap.docs) {
+      final data = doc.data();
+      final refId = data['motor_id'] is DocumentReference 
+          ? (data['motor_id'] as DocumentReference).id 
+          : data['motor_id'] as String? ?? '';
+      if (refId == motorId) {
+        await db.collection('Motor_Sewa').doc(doc.id).update({'status': 'selesai'});
+      }
+    }
+
     await db.collection('Motor').doc(motorId).update({'status': 'tersedia'});
   }
 

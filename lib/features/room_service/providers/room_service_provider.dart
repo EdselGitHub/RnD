@@ -30,6 +30,7 @@ class RoomServiceNotifier extends AsyncNotifier<void> {
 
     await db.collection('CleaningRoom').add({
       'room_id': db.collection('Ruangan').doc(roomId),
+      'room_number': roomNumber,
       'deskripsi': notes ?? '',
       'jadwal': Timestamp.fromDate(scheduledAt),
       'pembuatan': Timestamp.fromDate(now),

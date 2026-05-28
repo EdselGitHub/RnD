@@ -37,7 +37,7 @@ class FinanceRecordModel {
       deskripsi: map['deskripsi'] as String?,
       tanggal: (map['tanggal'] as Timestamp?)?.toDate() ?? DateTime.now(),
       tipe: map['tipe'] as String? ?? 'income',
-      kartuIdentitas: map['kartu_identitas'] as String?,
+      kartuIdentitas: map['kartu_identitas'] as String? ?? map['kartuIdentitas'] as String? ?? map['ktp'] as String?,
     );
   }
 

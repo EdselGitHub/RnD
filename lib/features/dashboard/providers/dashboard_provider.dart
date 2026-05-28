@@ -157,7 +157,12 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
             (sewaData['tanggal'] as Timestamp?)?.toDate();
         final tanggalSelesai =
             (sewaData['tanggal_selesai'] as Timestamp?)?.toDate();
-        if (tanggal == null || tanggalSelesai == null) return false;
+        
+        if (tanggal == null) return false;
+
+        if (tanggalSelesai == null) {
+          return now.compareTo(tanggal) >= 0;
+        }
 
         return now.compareTo(tanggal) >= 0 && now.compareTo(tanggalSelesai) < 0;
       });

@@ -184,7 +184,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             //                 ),
             //                 const SizedBox(height: 12),
             //                 const Text(
-            //                   'Scan QR Code di atas menggunakan aplikasi mobile banking atau e-wallet Anda.',
+            //                   'Scan QR kode di atas menggunakan aplikasi mobile banking atau e-wallet Anda.',
             //                   textAlign: TextAlign.center,
             //                   style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             //                 ),

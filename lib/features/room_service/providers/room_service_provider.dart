@@ -2,16 +2,28 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/room_service_model.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
+import '../../../core/services/notification_sound_service.dart';
 
 final roomServicesStreamProvider =
     StreamProvider<List<RoomServiceModel>>((ref) {
   final db = ref.watch(firestoreServiceProvider).db;
+  bool isInitial = true;
   return db
       .collection('CleaningRoom')
       .orderBy('jadwal', descending: true)
       .snapshots()
-      .map((snap) =>
-          snap.docs.map((d) => RoomServiceModel.fromDoc(d)).toList());
+      .map((snap) {
+    if (!isInitial) {
+      for (var change in snap.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          NotificationSoundService.playNotificationSound();
+          break; // Mainkan sekali per batch
+        }
+      }
+    }
+    isInitial = false;
+    return snap.docs.map((d) => RoomServiceModel.fromDoc(d)).toList();
+  });
 });
 
 class RoomServiceNotifier extends AsyncNotifier<void> {

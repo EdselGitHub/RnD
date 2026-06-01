@@ -1,20 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class DrinkTransactionModel {
-  final String id;
-  final String minumanId; // reference to Minuman
-  final DateTime pembuatan; // tanggal order dibuat
-  final int qty;
-  final DateTime tanggal;
-  final double total;
+import '../entities/drink_transaction_entity.dart';
 
+class DrinkTransactionModel extends DrinkTransactionEntity {
   const DrinkTransactionModel({
-    required this.id,
-    required this.minumanId,
-    required this.pembuatan,
-    required this.qty,
-    required this.tanggal,
-    required this.total,
+    required super.id,
+    required super.minumanId,
+    required super.pembuatan,
+    required super.qty,
+    required super.tanggal,
+    required super.total,
   });
   factory DrinkTransactionModel.fromMap(
       Map<String, dynamic> map, String id) {

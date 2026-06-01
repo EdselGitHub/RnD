@@ -1,18 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class UserModel {
-  final String uid;
-  final String email;
-  final String name;
-  final String role; // 'admin' | 'owner' | 'karyawan' | 'petugas'
-  final DateTime createdAt;
+import '../entities/user_entity.dart';
 
+class UserModel extends UserEntity {
   const UserModel({
-    required this.uid,
-    required this.email,
-    required this.name,
-    required this.role,
-    required this.createdAt,
+    required super.uid,
+    required super.email,
+    required super.name,
+    required super.role,
+    required super.createdAt,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map, String uid) {

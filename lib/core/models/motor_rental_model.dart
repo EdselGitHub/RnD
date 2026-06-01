@@ -1,28 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class MotorRentalModel {
-  final String id;
-  final String motorId; // reference to Motor
-  final String tamuId; // reference to Tamu
-  final double hargaPerhari; // 150000
-  final String status; // 'aktif' | 'selesai' | 'dibatalkan'
-  final DateTime tanggal;
-  final DateTime tanggalSelesai;
-  final DateTime pembuatan; // tanggal order dibuat
-  final double total;
-  final String unit;
+import '../entities/motor_rental_entity.dart';
 
+class MotorRentalModel extends MotorRentalEntity {
   const MotorRentalModel({
-    required this.id,
-    required this.motorId,
-    required this.tamuId,
-    required this.hargaPerhari,
-    required this.status,
-    required this.tanggal,
-    required this.tanggalSelesai,
-    required this.pembuatan,
-    required this.total,
-    required this.unit,
+    required super.id,
+    required super.motorId,
+    required super.tamuId,
+    required super.hargaPerhari,
+    required super.status,
+    required super.tanggal,
+    required super.tanggalSelesai,
+    required super.pembuatan,
+    required super.total,
+    required super.unit,
   });
 
   factory MotorRentalModel.fromMap(Map<String, dynamic> map, String id) {

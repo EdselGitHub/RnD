@@ -1,16 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class DrinkModel {
-  final String id;
-  final String nama;
-  final double harga;
-  final int stok;
+import '../entities/drink_entity.dart';
 
+class DrinkModel extends DrinkEntity {
   const DrinkModel({
-    required this.id,
-    required this.nama,
-    required this.harga,
-    required this.stok,
+    required super.id,
+    required super.nama,
+    required super.harga,
+    required super.stok,
   });
 
   bool get isLowStock => stok < 2;

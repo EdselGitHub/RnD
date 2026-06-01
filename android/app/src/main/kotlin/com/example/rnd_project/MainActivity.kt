@@ -1,5 +1,6 @@
 package com.example.rnd_project
 
+import android.content.Intent
 import android.media.RingtoneManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -10,6 +11,15 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        
+        // Start native background service to listen for room service additions
+        try {
+            val intent = Intent(this, RoomServiceNotificationService::class.java)
+            startService(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "playNotificationSound") {
                 try {

@@ -1,15 +1,12 @@
 
-class GuestModel {
-  final String id;
-  final String nama;
-  final String noHp;
-  final String kartuIdentitas;
+import '../entities/guest_entity.dart';
 
+class GuestModel extends GuestEntity {
   const GuestModel({
-    required this.id,
-    required this.nama,
-    required this.noHp,
-    required this.kartuIdentitas,
+    required super.id,
+    required super.nama,
+    required super.noHp,
+    required super.kartuIdentitas,
   });
 
 

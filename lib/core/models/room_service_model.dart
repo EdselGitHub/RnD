@@ -1,23 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class RoomServiceModel {
-  final String id;
-  final String roomId; // reference to Ruangan
-  final String deskripsi;
-  final DateTime jadwal;
-  final DateTime pembuatan; // tanggal request cleaning room dibuat
-  final String status; // 'menunggu' | 'proses' | 'selesai'
+import '../entities/room_service_entity.dart';
 
+class RoomServiceModel extends RoomServiceEntity {
   // Cached display field (not stored in Firestore)
   final String _roomNumber;
 
   const RoomServiceModel({
-    required this.id,
-    required this.roomId,
-    required this.deskripsi,
-    required this.jadwal,
-    required this.pembuatan,
-    required this.status,
+    required super.id,
+    required super.roomId,
+    required super.deskripsi,
+    required super.jadwal,
+    required super.pembuatan,
+    required super.status,
     String roomNumber = '',
   }) : _roomNumber = roomNumber;
 

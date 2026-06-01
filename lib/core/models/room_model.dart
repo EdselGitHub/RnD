@@ -1,22 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class RoomModel {
-  final String id;
-  final String nama;
-  final double harga;
-  final double hargaMingguan;
-  final double hargaBulanan;
-  final String status; // 'tersedia' | 'tidak tersedia' | 'maintenance'
-  final String tipe;
+import '../entities/room_entity.dart';
 
+class RoomModel extends RoomEntity {
   const RoomModel({
-    required this.id,
-    required this.nama,
-    required this.harga,
-    this.hargaMingguan = 0.0,
-    this.hargaBulanan = 0.0,
-    required this.status,
-    this.tipe = '',
+    required super.id,
+    required super.nama,
+    required super.harga,
+    super.hargaMingguan = 0.0,
+    super.hargaBulanan = 0.0,
+    required super.status,
+    super.tipe = '',
   });
 
   bool get isAvailable => status == 'tersedia';

@@ -10,7 +10,6 @@ final roomServicesStreamProvider =
   bool isInitial = true;
   return db
       .collection('CleaningRoom')
-      .orderBy('jadwal', descending: true)
       .snapshots()
       .map((snap) {
     if (!isInitial) {
@@ -22,7 +21,9 @@ final roomServicesStreamProvider =
       }
     }
     isInitial = false;
-    return snap.docs.map((d) => RoomServiceModel.fromDoc(d)).toList();
+    final list = snap.docs.map((d) => RoomServiceModel.fromDoc(d)).toList();
+    list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return list;
   });
 });
 

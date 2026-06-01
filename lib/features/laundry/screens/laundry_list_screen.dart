@@ -43,7 +43,10 @@ class LaundryListScreen extends ConsumerWidget {
                     children: [
                       Row(
                         children: [
-                          Text('Laundry #${o.id.substring(0, 6)}',
+                          Text(
+                              o.roomNumber.isNotEmpty
+                                  ? 'Laundry ${o.roomNumber}'
+                                  : 'Laundry #${o.id.substring(0, 6)}',
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16)),
                           const Spacer(),

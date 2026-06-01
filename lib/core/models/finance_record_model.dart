@@ -1,22 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class FinanceRecordModel {
-  final String id;
-  final double jumlah;
-  final String kategori; // 'penjualan kamar' | 'laundry' | 'motor' | 'minuman'
-  final String? deskripsi;
-  final DateTime tanggal;
-  final String tipe; // 'income' | 'expense'
-  final String? kartuIdentitas; // Field baru untuk path KTP
+import '../entities/finance_record_entity.dart';
 
+class FinanceRecordModel extends FinanceRecordEntity {
   const FinanceRecordModel({
-    required this.id,
-    required this.jumlah,
-    required this.kategori,
-    this.deskripsi,
-    required this.tanggal,
-    required this.tipe,
-    this.kartuIdentitas,
+    required super.id,
+    required super.jumlah,
+    required super.kategori,
+    super.deskripsi,
+    required super.tanggal,
+    required super.tipe,
+    super.kartuIdentitas,
   });
 
   bool get isIncome => tipe == 'income';

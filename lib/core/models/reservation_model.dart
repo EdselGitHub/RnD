@@ -1,26 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ReservationModel {
-  final String id;
-  final String roomId; // reference to Ruangan
-  final String tamuId; // reference to Tamu
-  final DateTime checkin;
-  final DateTime checkout;
-  final double total;
-  final String status; // 'aktif' | 'selesai' | 'dibatalkan'
+import '../entities/reservation_entity.dart';
 
+class ReservationModel extends ReservationEntity {
   // Cached display fields (not stored in Firestore)
   final String _roomName;
   final String _guestName;
 
   const ReservationModel({
-    required this.id,
-    required this.roomId,
-    required this.tamuId,
-    required this.checkin,
-    required this.checkout,
-    required this.total,
-    required this.status,
+    required super.id,
+    required super.roomId,
+    required super.tamuId,
+    required super.checkin,
+    required super.checkout,
+    required super.total,
+    required super.status,
     String roomName = '',
     String guestName = '',
   })  : _roomName = roomName,

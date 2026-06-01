@@ -11,6 +11,33 @@ final laundryStreamProvider = StreamProvider<List<LaundryModel>>((ref) {
       .map((snap) => snap.docs.map((d) => LaundryModel.fromDoc(d)).toList());
 });
 
+final laundryGuestNameProvider = FutureProvider.family<String, String>((ref, tamuId) async {
+  if (tamuId.isEmpty) return '';
+  final db = ref.watch(firestoreServiceProvider).db;
+  
+  try {
+    final tamuDoc = await db.collection('Tamu').doc(tamuId).get();
+    if (tamuDoc.exists) {
+      final data = tamuDoc.data();
+      if (data != null && data['nama'] != null) {
+        return data['nama'] as String;
+      }
+    }
+  } catch (_) {}
+
+  try {
+    final userDoc = await db.collection('users').doc(tamuId).get();
+    if (userDoc.exists) {
+      final data = userDoc.data();
+      if (data != null) {
+        return (data['name'] ?? data['nama'] ?? '') as String;
+      }
+    }
+  } catch (_) {}
+
+  return '';
+});
+
 class LaundryNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}

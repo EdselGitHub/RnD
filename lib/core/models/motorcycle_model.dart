@@ -1,16 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class MotorcycleModel {
-  final String id;
-  final String nama;
-  final double harga;
-  final String status; // 'tersedia' | 'disewa' | 'maintenance'
+import '../entities/motorcycle_entity.dart';
 
+class MotorcycleModel extends MotorcycleEntity {
   const MotorcycleModel({
-    required this.id,
-    required this.nama,
-    required this.harga,
-    required this.status,
+    required super.id,
+    required super.nama,
+    required super.harga,
+    required super.status,
   });
 
   bool get isAvailable => status == 'tersedia';

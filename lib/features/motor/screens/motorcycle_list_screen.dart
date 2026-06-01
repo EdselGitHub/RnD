@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../providers/motor_provider.dart';
 import '../../../core/models/motorcycle_model.dart';
+import '../../../core/models/motor_rental_model.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/stat_card.dart';
 import '../../../core/constants/app_constants.dart';
@@ -14,19 +15,13 @@ class MotorcycleListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final motorcyclesAsync = ref.watch(motorcyclesStreamProvider);
+    final rentalsAsync = ref.watch(motorRentalsStreamProvider);
     final currency =
         NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Penyewaan Motor'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () => context.push('/motor-rentals/history'),
-            tooltip: 'Riwayat',
-          ),
-        ],
       ),
       drawer: const AppDrawer(),
       body: motorcyclesAsync.when(
@@ -45,89 +40,194 @@ class MotorcycleListScreen extends ConsumerWidget {
               final m = motorcycles[i];
               final isAvailable = m.isAvailable;
               final isMaintenance = m.status == 'maintenance';
+
+              List<MotorRentalModel> motorRentals = [];
+              if (!isAvailable && !isMaintenance && rentalsAsync is AsyncData) {
+                final now = DateTime.now();
+                motorRentals = rentalsAsync.value!.where((res) => 
+                  res.motorId == m.id && 
+                  res.status == 'aktif' &&
+                  now.compareTo(res.tanggalSelesai) < 0
+                ).toList();
+                motorRentals.sort((a, b) => a.tanggal.compareTo(b.tanggal));
+              }
+
               return Card(
                 margin: const EdgeInsets.only(bottom: 10),
-                child: Column(
-                  children: [
-                    ListTile(
-                      contentPadding: const EdgeInsets.all(AppDimensions.paddingM),
-                      leading: Container(
-                        width: 48, height: 48,
-                        decoration: BoxDecoration(
-                          color: isAvailable
-                              ? AppColors.available.withOpacity(0.12)
-                              : isMaintenance
-                                  ? AppColors.warning.withOpacity(0.12)
-                                  : AppColors.occupied.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(AppDimensions.radiusM),
-                        ),
-                        child: Icon(Icons.two_wheeler_rounded,
-                            color: isAvailable
-                                ? AppColors.available
-                                : isMaintenance
-                                    ? AppColors.warning
-                                    : AppColors.occupied),
-                      ),
-                      title: Text(m.nama,
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(currency.format(m.harga) + '/hari',
-                          style: const TextStyle(fontSize: 12)),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppDimensions.paddingM),
+                  child: Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          StatusBadge(
-                            label: isAvailable
-                                ? AppStrings.motorAvailable
-                                : isMaintenance
-                                    ? 'Maintenance'
-                                    : AppStrings.motorRented,
-                            color: isAvailable
-                                ? AppColors.available
-                                : isMaintenance
-                                    ? AppColors.warning
-                                    : AppColors.occupied,
+                          Container(
+                            width: 48, height: 48,
+                            decoration: BoxDecoration(
+                              color: isAvailable
+                                  ? AppColors.available.withOpacity(0.12)
+                                  : isMaintenance
+                                      ? AppColors.warning.withOpacity(0.12)
+                                      : AppColors.occupied.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(AppDimensions.radiusM),
+                            ),
+                            child: Icon(Icons.two_wheeler_rounded,
+                                color: isAvailable
+                                    ? AppColors.available
+                                    : isMaintenance
+                                        ? AppColors.warning
+                                        : AppColors.occupied),
                           ),
-                          if (isAvailable) ...[
-                            const SizedBox(height: 6),
-                            GestureDetector(
-                              onTap: () => context.push('/motor-rentals/add',
-                                  extra: {'motorcycleId': m.id, 'plateNumber': m.nama}),
-                              child: const Text('Sewa',
-                                  style: TextStyle(
-                                      color: AppColors.primary,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600)),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(m.nama,
+                                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                                Text('${currency.format(m.harga)}/hari',
+                                    style: const TextStyle(fontSize: 12)),
+                                ...motorRentals.map((res) => Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    'Disewa: ${DateFormat('dd MMM').format(res.tanggal)} - ${DateFormat('dd MMM yyyy').format(res.tanggalSelesai)}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                )),
+                              ],
                             ),
-                          ],
-                          if (m.status == 'disewa') ...[
-                            const SizedBox(height: 6),
-                            GestureDetector(
-                              onTap: () async {
-                                await ref
-                                    .read(motorNotifierProvider.notifier)
-                                    .setMotorTersedia(m.id);
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text('Motor berhasil diubah ke tersedia!'),
-                                        backgroundColor: AppColors.success),
-                                  );
-                                }
-                              },
-                              child: const Text('Tersediakan',
-                                  style: TextStyle(
-                                      color: AppColors.success,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600)),
-                            ),
-                          ],
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              StatusBadge(
+                                label: isAvailable
+                                    ? AppStrings.motorAvailable
+                                    : isMaintenance
+                                        ? 'Maintenance'
+                                        : AppStrings.motorRented,
+                                color: isAvailable
+                                    ? AppColors.available
+                                    : isMaintenance
+                                        ? AppColors.warning
+                                        : AppColors.occupied,
+                              ),
+                              if (isAvailable) ...[
+                                const SizedBox(height: 6),
+                                GestureDetector(
+                                  onTap: () => context.push('/motor-rentals/add',
+                                      extra: {'motorcycleId': m.id, 'plateNumber': m.nama}),
+                                  child: const Text('Sewa',
+                                      style: TextStyle(
+                                          color: AppColors.primary,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600)),
+                                ),
+                              ],
+                              if (!isAvailable && !isMaintenance) ...[
+                                const SizedBox(height: 6),
+                                GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: const Text('Opsi Motor Disewa'),
+                                        content: SizedBox(
+                                          width: double.maxFinite,
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              const Text('Pilih tanggal sewa yang ingin diselesaikan:'),
+                                              const SizedBox(height: 12),
+                                              ...motorRentals.map((res) {
+                                                final dateStr = '${DateFormat('dd MMM yyyy').format(res.tanggal)} - ${DateFormat('dd MMM yyyy').format(res.tanggalSelesai)}';
+                                                return Card(
+                                                  elevation: 0,
+                                                  color: Colors.grey.shade100,
+                                                  margin: const EdgeInsets.only(bottom: 8),
+                                                  child: ListTile(
+                                                    title: Text(dateStr, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                                                    trailing: ElevatedButton(
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: AppColors.error,
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                                                        minimumSize: const Size(60, 30),
+                                                      ),
+                                                      onPressed: () async {
+                                                        await ref.read(motorNotifierProvider.notifier).returnMotor(res);
+                                                        if (ctx.mounted) {
+                                                          Navigator.pop(ctx);
+                                                          ScaffoldMessenger.of(context).showSnackBar(
+                                                            SnackBar(
+                                                              content: Text('Sewa motor pada tanggal $dateStr berhasil diselesaikan!'),
+                                                              backgroundColor: AppColors.success,
+                                                            ),
+                                                          );
+                                                        }
+                                                      },
+                                                      child: const Text('Selesai', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                                    ),
+                                                  ),
+                                                );
+                                              }),
+                                              if (motorRentals.isEmpty)
+                                                ListTile(
+                                                  title: const Text('Tidak ada sewa aktif.'),
+                                                  trailing: ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                                                    onPressed: () async {
+                                                      await ref.read(motorNotifierProvider.notifier).setMotorTersedia(m.id);
+                                                      if (ctx.mounted) {
+                                                        Navigator.pop(ctx);
+                                                        ScaffoldMessenger.of(context).showSnackBar(
+                                                          const SnackBar(
+                                                            content: Text('Motor berhasil diubah ke tersedia!'),
+                                                            backgroundColor: AppColors.success,
+                                                          ),
+                                                        );
+                                                      }
+                                                    },
+                                                    child: const Text('Tersediakan Paksa', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(ctx),
+                                            child: const Text('Batal'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.pop(ctx);
+                                              context.push('/motor-rentals/add',
+                                                  extra: {'motorcycleId': m.id, 'plateNumber': m.nama});
+                                            },
+                                            child: const Text('Tambah Sewa Baru'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                  child: const Text('Tersediakan',
+                                      style: TextStyle(
+                                          color: AppColors.success,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600)),
+                                ),
+                              ],
+                            ],
+                          ),
                         ],
                       ),
-                    ),
-                    const Divider(height: 1),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      child: Row(
+                      const Divider(height: 20),
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           InkWell(
@@ -151,8 +251,8 @@ class MotorcycleListScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },

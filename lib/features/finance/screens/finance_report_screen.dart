@@ -50,11 +50,14 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
   Widget build(BuildContext context) {
     final period = ref.watch(financePeriodProvider);
     final category = ref.watch(financeCategoryFilterProvider);
+    final selectedDate = ref.watch(financeSelectedDateProvider);
     final recordsAsync = ref.watch(financeRecordsProvider);
     final categoryAsync = ref.watch(financeByCategory);
     final currency =
         NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     final df = DateFormat('dd MMM yyyy', 'id_ID');
+
+    final now = DateTime.now();
 
     return Scaffold(
       appBar: AppBar(
@@ -92,9 +95,12 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
                       child: PeriodTab(
                         label: 'Harian',
                         isSelected: period == FinancePeriod.daily,
-                        onTap: () => ref
-                            .read(financePeriodProvider.notifier)
-                            .state = FinancePeriod.daily,
+                        onTap: () {
+                          ref.read(financePeriodProvider.notifier).state =
+                              FinancePeriod.daily;
+                          ref.read(financeSelectedDateProvider.notifier).state =
+                              DateTime.now();
+                        },
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -109,6 +115,48 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
                     ),
                   ],
                 ),
+                if (period == FinancePeriod.monthly) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.chevron_left, color: AppColors.primary),
+                        onPressed: () {
+                          final current = ref.read(financeSelectedDateProvider);
+                          ref.read(financeSelectedDateProvider.notifier).state =
+                              DateTime(current.year, current.month - 1, 1);
+                        },
+                      ),
+                      Text(
+                        DateFormat('MMMM yyyy', 'id_ID').format(selectedDate),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          Icons.chevron_right,
+                          color: (selectedDate.year < now.year ||
+                                  (selectedDate.year == now.year &&
+                                      selectedDate.month < now.month))
+                              ? AppColors.primary
+                              : Colors.grey,
+                        ),
+                        onPressed: (selectedDate.year < now.year ||
+                                (selectedDate.year == now.year &&
+                                    selectedDate.month < now.month))
+                            ? () {
+                                ref.read(financeSelectedDateProvider.notifier).state =
+                                    DateTime(selectedDate.year, selectedDate.month + 1, 1);
+                              }
+                            : null,
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 10),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,

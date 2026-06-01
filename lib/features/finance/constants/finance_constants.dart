@@ -3,7 +3,6 @@ import '../../../core/constants/app_constants.dart';
 
 class FinanceConstants {
   static const List<String> categories = [
-    'penjualan kamar',
     'kamar',
     'motor',
     'laundry',

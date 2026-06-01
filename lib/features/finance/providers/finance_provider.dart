@@ -11,10 +11,14 @@ final financePeriodProvider =
 
 final financeCategoryFilterProvider = StateProvider<String?>((ref) => null);
 
+final financeSelectedDateProvider =
+    StateProvider<DateTime>((ref) => DateTime.now());
+
 final financeRecordsProvider = StreamProvider<List<FinanceRecordModel>>((ref) {
   final db = ref.watch(firestoreServiceProvider).db;
   final period = ref.watch(financePeriodProvider);
   final category = ref.watch(financeCategoryFilterProvider);
+  final selectedDate = ref.watch(financeSelectedDateProvider);
 
   final now = DateTime.now();
   DateTime start;
@@ -24,8 +28,8 @@ final financeRecordsProvider = StreamProvider<List<FinanceRecordModel>>((ref) {
     start = DateTime(now.year, now.month, now.day);
     end = start.add(const Duration(days: 1));
   } else {
-    start = DateTime(now.year, now.month, 1);
-    end = DateTime(now.year, now.month + 1, 1);
+    start = DateTime(selectedDate.year, selectedDate.month, 1);
+    end = DateTime(selectedDate.year, selectedDate.month + 1, 1);
   }
 
   final streamController = StreamController<List<FinanceRecordModel>>();
@@ -42,8 +46,18 @@ final financeRecordsProvider = StreamProvider<List<FinanceRecordModel>>((ref) {
         .where((r) {
           final inRange = r.tanggal.isAfter(start.subtract(const Duration(seconds: 1))) &&
               r.tanggal.isBefore(end);
-          final matchCategory = category == null || 
-              (category == 'pengeluaran' ? !r.isIncome : r.kategori == category);
+          
+          final bool matchCategory;
+          if (category == null) {
+            matchCategory = true;
+          } else if (category == 'pengeluaran') {
+            matchCategory = !r.isIncome;
+          } else if (category == 'kamar') {
+            matchCategory = r.kategori == 'kamar' || r.kategori == 'penjualan kamar';
+          } else {
+            matchCategory = r.kategori == category;
+          }
+          
           return inRange && matchCategory;
         })
         .toList()
@@ -73,7 +87,8 @@ final financeByCategory = Provider<AsyncValue<Map<String, double>>>((ref) {
     final Map<String, double> result = {};
     for (final r in records) {
       if (r.isIncome) {
-        result[r.kategori] = (result[r.kategori] ?? 0) + r.jumlah;
+        final key = r.kategori == 'penjualan kamar' ? 'kamar' : r.kategori;
+        result[key] = (result[key] ?? 0) + r.jumlah;
       }
     }
     return result;

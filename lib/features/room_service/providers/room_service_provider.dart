@@ -22,7 +22,15 @@ final roomServicesStreamProvider =
     }
     isInitial = false;
     final list = snap.docs.map((d) => RoomServiceModel.fromDoc(d)).toList();
-    list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    // Sort terbaru di atas — gunakan createdAt (alias pembuatan) dengan fallback ke doc ID
+    list.sort((a, b) {
+      final aTime = a.createdAt.millisecondsSinceEpoch;
+      final bTime = b.createdAt.millisecondsSinceEpoch;
+      if (aTime == 0 && bTime == 0) {
+        return b.id.compareTo(a.id);
+      }
+      return bTime.compareTo(aTime);
+    });
     return list;
   });
 });
@@ -39,14 +47,13 @@ class RoomServiceNotifier extends AsyncNotifier<void> {
     String? notes,
   }) async {
     final db = ref.read(firestoreServiceProvider).db;
-    final now = DateTime.now();
 
     await db.collection('CleaningRoom').add({
       'room_id': db.collection('Ruangan').doc(roomId),
       'room_number': roomNumber,
       'deskripsi': notes ?? '',
       'jadwal': Timestamp.fromDate(scheduledAt),
-      'pembuatan': Timestamp.fromDate(now),
+      'pembuatan': FieldValue.serverTimestamp(),
       'status': 'menunggu',
     });
   }

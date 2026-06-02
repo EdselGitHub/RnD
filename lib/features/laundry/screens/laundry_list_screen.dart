@@ -140,8 +140,7 @@ class AddLaundryScreen extends ConsumerStatefulWidget {
 class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
-  final _idCtrl = TextEditingController();
+
   final _weightCtrl = TextEditingController();
   final _roomCtrl = TextEditingController();
   String _serviceType = 'regular';
@@ -153,8 +152,6 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
   @override
   void dispose() {
     _nameCtrl.dispose();
-    _phoneCtrl.dispose();
-    _idCtrl.dispose();
     _weightCtrl.dispose();
     _roomCtrl.dispose();
     super.dispose();
@@ -166,8 +163,6 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
     try {
       await ref.read(laundryNotifierProvider.notifier).addOrder(
             guestName: _nameCtrl.text.trim(),
-            guestPhone: _phoneCtrl.text.trim(),
-            guestIdNumber: _idCtrl.text.trim(),
             roomNumber: _roomCtrl.text.trim(),
             serviceType: _serviceType,
             weight: double.parse(_weightCtrl.text),
@@ -219,22 +214,6 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
                             labelText: 'Nama Tamu',
                             prefixIcon: Icon(Icons.person_outlined)),
                         validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _phoneCtrl,
-                        keyboardType: TextInputType.phone,
-                        decoration: const InputDecoration(
-                            labelText: 'No. HP',
-                            prefixIcon: Icon(Icons.phone_outlined)),
-                        validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _idCtrl,
-                        decoration: const InputDecoration(
-                            labelText: 'Kartu Identitas',
-                            prefixIcon: Icon(Icons.badge_outlined)),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(

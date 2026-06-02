@@ -173,11 +173,101 @@ class DrinksScreen extends ConsumerWidget {
   }
 
   void _showEditStokDialog(BuildContext context, WidgetRef ref, DrinkModel drink) {
+    _showPasswordDialog(context, onVerified: () {
+      _showStokInputDialog(context, ref, drink);
+    });
+  }
+
+  void _showPasswordDialog(BuildContext context,
+      {required VoidCallback onVerified}) {
+    final passCtrl = TextEditingController();
+    bool obscure = true;
+    String? errorText;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: const [
+              Icon(Icons.lock_outline, color: AppColors.primary),
+              SizedBox(width: 8),
+              Text('Verifikasi Password'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Masukkan password untuk mengubah stok.',
+                style: TextStyle(
+                    color: AppColors.textSecondary, fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passCtrl,
+                obscureText: obscure,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: const Icon(Icons.password_outlined),
+                  errorText: errorText,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                        obscure ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => obscure = !obscure),
+                  ),
+                ),
+                onSubmitted: (_) => _verifyAndProceed(
+                  ctx, passCtrl, onVerified, setState, (err) => errorText = err,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.check, size: 16),
+              label: const Text('Konfirmasi'),
+              onPressed: () => _verifyAndProceed(
+                ctx, passCtrl, onVerified, setState, (err) => errorText = err,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _verifyAndProceed(
+    BuildContext ctx,
+    TextEditingController passCtrl,
+    VoidCallback onVerified,
+    StateSetter setState,
+    void Function(String?) setError,
+  ) {
+    if (passCtrl.text == '438438') {
+      Navigator.pop(ctx);
+      onVerified();
+    } else {
+      setState(() => setError('Password salah, coba lagi'));
+    }
+  }
+
+  void _showStokInputDialog(
+      BuildContext context, WidgetRef ref, DrinkModel drink) {
     final stokCtrl = TextEditingController(text: '${drink.stok}');
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text('Edit Stok - ${drink.nama}'),
         content: TextField(
           controller: stokCtrl,
@@ -204,7 +294,8 @@ class DrinksScreen extends ConsumerWidget {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                      content: Text('Stok ${drink.nama} diubah menjadi $newStok'),
+                      content:
+                          Text('Stok ${drink.nama} diubah menjadi $newStok'),
                       backgroundColor: AppColors.success),
                 );
               }
@@ -216,12 +307,27 @@ class DrinksScreen extends ConsumerWidget {
     );
   }
 
+
   void _showDeleteDialog(BuildContext context, WidgetRef ref, DrinkModel drink) {
+    _showPasswordDialog(context, onVerified: () {
+      _showDeleteConfirmDialog(context, ref, drink);
+    });
+  }
+
+  void _showDeleteConfirmDialog(
+      BuildContext context, WidgetRef ref, DrinkModel drink) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Hapus Minuman'),
-        content: Text('Yakin ingin menghapus "${drink.nama}"?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: const [
+            Icon(Icons.delete_outline, color: AppColors.error),
+            SizedBox(width: 8),
+            Text('Hapus Minuman'),
+          ],
+        ),
+        content: Text('Yakin ingin menghapus "${drink.nama}"?\nTindakan ini tidak dapat dibatalkan.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

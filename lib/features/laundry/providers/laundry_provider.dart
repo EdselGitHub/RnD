@@ -5,10 +5,62 @@ import '../../dashboard/providers/dashboard_provider.dart';
 
 final laundryStreamProvider = StreamProvider<List<LaundryModel>>((ref) {
   final db = ref.watch(firestoreServiceProvider).db;
+  bool isFirstSnapshot = true;
+  // Menyimpan waktu kapan dokumen pertama kali muncul di stream (real-time)
+  final Map<String, DateTime> realtimeAddedAt = {};
+
   return db
       .collection('Laundry')
       .snapshots()
-      .map((snap) => snap.docs.map((d) => LaundryModel.fromDoc(d)).toList());
+      .map((snap) {
+        final now = DateTime.now();
+
+        if (!isFirstSnapshot) {
+          // Real-time update: catat kapan dokumen BARU pertama kali terdeteksi
+          // Ini berlaku untuk dokumen dari app manapun (user app, admin app, dll)
+          for (final change in snap.docChanges) {
+            if (change.type == DocumentChangeType.added) {
+              realtimeAddedAt.putIfAbsent(change.doc.id, () => now);
+            }
+          }
+        }
+        isFirstSnapshot = false;
+
+        // Parse setiap dokumen secara individual — jika satu gagal, skip saja
+        final list = snap.docs
+            .map((d) {
+              try {
+                return LaundryModel.fromDoc(d);
+              } catch (_) {
+                return null;
+              }
+            })
+            .whereType<LaundryModel>()
+            .toList();
+
+        list.sort((a, b) {
+          // Prioritas 1: waktu real-time (dokumen yang baru muncul saat app berjalan)
+          final aRealtime = realtimeAddedAt[a.id];
+          final bRealtime = realtimeAddedAt[b.id];
+
+          final aTime = aRealtime ??
+              (a.createdAt.millisecondsSinceEpoch > 0
+                  ? a.createdAt
+                  : DateTime.fromMillisecondsSinceEpoch(0));
+          final bTime = bRealtime ??
+              (b.createdAt.millisecondsSinceEpoch > 0
+                  ? b.createdAt
+                  : DateTime.fromMillisecondsSinceEpoch(0));
+
+          if (aTime.millisecondsSinceEpoch != bTime.millisecondsSinceEpoch) {
+            return bTime.compareTo(aTime);
+          }
+          // Tiebreaker: doc ID descending
+          return b.id.compareTo(a.id);
+        });
+
+        return list;
+      });
 });
 
 final laundryGuestNameProvider = FutureProvider.family<String, String>((ref, tamuId) async {
@@ -58,7 +110,6 @@ class LaundryNotifier extends AsyncNotifier<void> {
     final guestRef = await db.collection('Tamu').add({
       'nama': guestName,
       'no_hp': guestPhone ?? '',
-      'kartu_identitas': guestIdNumber ?? '',
     });
 
     // Save laundry order to Laundry collection
@@ -70,6 +121,7 @@ class LaundryNotifier extends AsyncNotifier<void> {
       'jenis': serviceType,
       'status': 'menunggu',
       'no_kamar': roomNumber,
+      'createdAt': FieldValue.serverTimestamp(),
     });
 
     // Finance record in Transaksi_Keuangan

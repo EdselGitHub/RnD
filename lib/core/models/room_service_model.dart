@@ -22,15 +22,32 @@ class RoomServiceModel extends RoomServiceEntity {
   DateTime get createdAt => pembuatan;
 
   factory RoomServiceModel.fromMap(Map<String, dynamic> map, String id) {
+    // Coba berbagai nama field untuk waktu pembuatan (kompatibel dengan user app)
+    DateTime pembuatan = DateTime.fromMillisecondsSinceEpoch(0);
+    for (final key in ['pembuatan', 'createdAt', 'created_at', 'tanggal']) {
+      if (map[key] is Timestamp) {
+        pembuatan = (map[key] as Timestamp).toDate();
+        break;
+      }
+    }
+
+    // Coba berbagai nama field untuk nomor kamar (kompatibel dengan user app)
+    String roomNumber = map['room_number'] as String? ?? '';
+    if (roomNumber.isEmpty) {
+      roomNumber = map['no_kamar'] as String? ?? map['roomNumber'] as String? ?? '';
+    }
+
     return RoomServiceModel(
       id: id,
       roomId: map['room_id'] is DocumentReference
           ? (map['room_id'] as DocumentReference).id
           : map['room_id'] as String? ?? '',
-      roomNumber: map['room_number'] as String? ?? '',
-      deskripsi: map['deskripsi'] as String? ?? '',
-      jadwal: (map['jadwal'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      pembuatan: (map['pembuatan'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      roomNumber: roomNumber,
+      deskripsi: map['deskripsi'] as String? ?? map['notes'] as String? ?? '',
+      jadwal: (map['jadwal'] as Timestamp?)?.toDate() ??
+          (map['scheduled_at'] as Timestamp?)?.toDate() ??
+          DateTime.now(),
+      pembuatan: pembuatan,
       status: map['status'] as String? ?? 'menunggu',
     );
   }

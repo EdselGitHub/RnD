@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/firestore_service.dart';
+import '../../../core/constants/firestore_constants.dart';
 
 final firestoreServiceProvider =
     Provider<FirestoreService>((ref) => FirestoreService());
@@ -45,7 +46,7 @@ Future<void> _autoCompleteExpiredRentals(
     if (now.isAfter(tanggalSelesai)) {
       try {
         // Mark rental as completed
-        await db.collection('Motor_Sewa').doc(doc.id).update({
+        await db.collection(FirestoreCollections.motorSewa).doc(doc.id).update({
           'status': 'selesai',
         });
 
@@ -55,7 +56,7 @@ Future<void> _autoCompleteExpiredRentals(
             ? motorIdRef.id
             : (motorIdRef as String? ?? '');
         if (motorId.isNotEmpty) {
-          await db.collection('Motor').doc(motorId).update({
+          await db.collection(FirestoreCollections.motor).doc(motorId).update({
             'status': 'tersedia',
           });
         }
@@ -76,16 +77,16 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
   final endOfDay = startOfDay.add(const Duration(days: 1));
 
   // We use multiple streams and combine them manually since we don't have rxdart
-  final roomsStream = db.collection('Ruangan').snapshots();
-  final motorsStream = db.collection('Motor').snapshots();
-  final motorSewaStream = db.collection('Motor_Sewa').snapshots();
+  final roomsStream = db.collection(FirestoreCollections.ruangan).snapshots();
+  final motorsStream = db.collection(FirestoreCollections.motor).snapshots();
+  final motorSewaStream = db.collection(FirestoreCollections.motorSewa).snapshots();
   final financeStream1 = db
-      .collection('Transaksi_Keuangan')
+      .collection(FirestoreCollections.transaksiKeuangan)
       .where('tanggal', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
       .where('tanggal', isLessThan: Timestamp.fromDate(endOfDay))
       .snapshots();
-  final drinksStream = db.collection('Minuman').where('stok', isLessThan: 2).snapshots();
-  final reservasiStream = db.collection('Reservasi').where('status', isEqualTo: 'aktif').snapshots();
+  final drinksStream = db.collection(FirestoreCollections.minuman).where('stok', isLessThan: 2).snapshots();
+  final reservasiStream = db.collection(FirestoreCollections.reservasi).where('status', isEqualTo: 'aktif').snapshots();
 
   StreamController<DashboardStats>? controller;
   

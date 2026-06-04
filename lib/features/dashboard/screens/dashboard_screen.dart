@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../providers/dashboard_provider.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/stat_card.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../auth/providers/auth_provider.dart';
-import 'package:rnd_project/features/realtime_screen_test.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});

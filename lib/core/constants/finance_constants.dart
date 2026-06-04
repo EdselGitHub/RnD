@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_constants.dart';
+import 'app_constants.dart';
 
 class FinanceConstants {
   static const List<String> categories = [

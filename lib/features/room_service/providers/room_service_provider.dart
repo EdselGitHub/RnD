@@ -3,13 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/room_service_model.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
 import '../../../core/services/notification_sound_service.dart';
+import '../../../core/constants/firestore_constants.dart';
 
 final roomServicesStreamProvider =
     StreamProvider<List<RoomServiceModel>>((ref) {
   final db = ref.watch(firestoreServiceProvider).db;
   bool isInitial = true;
   return db
-      .collection('CleaningRoom')
+      .collection(FirestoreCollections.cleaningRoom)
       .snapshots()
       .map((snap) {
     if (!isInitial) {
@@ -48,8 +49,8 @@ class RoomServiceNotifier extends AsyncNotifier<void> {
   }) async {
     final db = ref.read(firestoreServiceProvider).db;
 
-    await db.collection('CleaningRoom').add({
-      'room_id': db.collection('Ruangan').doc(roomId),
+    await db.collection(FirestoreCollections.cleaningRoom).add({
+      'room_id': db.collection(FirestoreCollections.ruangan).doc(roomId),
       'room_number': roomNumber,
       'deskripsi': notes ?? '',
       'jadwal': Timestamp.fromDate(scheduledAt),
@@ -60,7 +61,7 @@ class RoomServiceNotifier extends AsyncNotifier<void> {
 
   Future<void> updateStatus(String id, String newStatus) async {
     final db = ref.read(firestoreServiceProvider).db;
-    await db.collection('CleaningRoom').doc(id).update({'status': newStatus});
+    await db.collection(FirestoreCollections.cleaningRoom).doc(id).update({'status': newStatus});
   }
 
   Future<void> markDone(String id) async {

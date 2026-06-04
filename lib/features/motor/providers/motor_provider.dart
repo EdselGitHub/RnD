@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/motorcycle_model.dart';
 import '../../../core/models/motor_rental_model.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
+import '../../../core/constants/firestore_constants.dart';
 
 final motorcyclesStreamProvider = StreamProvider<List<MotorcycleModel>>((ref) async* {
   final db = ref.watch(firestoreServiceProvider).db;
   final rentalsAsync = ref.watch(motorRentalsStreamProvider);
 
-  final motorsStream = db.collection('Motor').orderBy('nama').snapshots();
+  final motorsStream = db.collection(FirestoreCollections.motor).orderBy('nama').snapshots();
 
   await for (final snap in motorsStream) {
     var motors = snap.docs
@@ -45,7 +46,7 @@ final motorRentalsStreamProvider =
     StreamProvider<List<MotorRentalModel>>((ref) {
   final db = ref.watch(firestoreServiceProvider).db;
   return db
-      .collection('Motor_Sewa')
+      .collection(FirestoreCollections.motorSewa)
       .orderBy('pembuatan', descending: true)
       .snapshots()
       .map((snap) =>
@@ -68,16 +69,16 @@ class MotorNotifier extends AsyncNotifier<void> {
     final db = ref.read(firestoreServiceProvider).db;
 
     // Save guest to Tamu collection
-    final guestRef = await db.collection('Tamu').add({
+    final guestRef = await db.collection(FirestoreCollections.tamu).add({
       'nama': guestName,
       'no_hp': guestPhone,
       'kartu_identitas': '',
     });
 
     // Save rental to Motor_Sewa collection
-    await db.collection('Motor_Sewa').add({
-      'motor_id': db.collection('Motor').doc(motorcycle.id),
-      'tamu_id': db.collection('Tamu').doc(guestRef.id),
+    await db.collection(FirestoreCollections.motorSewa).add({
+      'motor_id': db.collection(FirestoreCollections.motor).doc(motorcycle.id),
+      'tamu_id': db.collection(FirestoreCollections.tamu).doc(guestRef.id),
       'harga_perhari': motorcycle.harga,
       'status': 'aktif',
       'tanggal': Timestamp.fromDate(startDate),
@@ -88,10 +89,10 @@ class MotorNotifier extends AsyncNotifier<void> {
     });
 
     // Update motor status
-    await db.collection('Motor').doc(motorcycle.id).update({'status': 'disewa'});
+    await db.collection(FirestoreCollections.motor).doc(motorcycle.id).update({'status': 'disewa'});
 
     // Finance record in Transaksi_Keuangan
-    await db.collection('Transaksi_Keuangan').add({
+    await db.collection(FirestoreCollections.transaksiKeuangan).add({
       'kategori': 'motor',
       'deskripsi': 'Sewa motor ${motorcycle.nama} (Unit $unit)',
       'jumlah': total,
@@ -102,8 +103,8 @@ class MotorNotifier extends AsyncNotifier<void> {
 
   Future<void> returnMotor(MotorRentalModel rental) async {
     final db = ref.read(firestoreServiceProvider).db;
-    await db.collection('Motor_Sewa').doc(rental.id).update({'status': 'selesai'});
-    await db.collection('Motor').doc(rental.motorId).update({'status': 'tersedia'});
+    await db.collection(FirestoreCollections.motorSewa).doc(rental.id).update({'status': 'selesai'});
+    await db.collection(FirestoreCollections.motor).doc(rental.motorId).update({'status': 'tersedia'});
   }
 
 
@@ -112,29 +113,29 @@ class MotorNotifier extends AsyncNotifier<void> {
     final db = ref.read(firestoreServiceProvider).db;
     
     // Ubah status sewa yang aktif menjadi selesai agar stream tidak mengubahnya kembali menjadi 'disewa'
-    final rentalsSnap = await db.collection('Motor_Sewa').where('status', isEqualTo: 'aktif').get();
+    final rentalsSnap = await db.collection(FirestoreCollections.motorSewa).where('status', isEqualTo: 'aktif').get();
     for (final doc in rentalsSnap.docs) {
       final data = doc.data();
       final refId = data['motor_id'] is DocumentReference 
           ? (data['motor_id'] as DocumentReference).id 
           : data['motor_id'] as String? ?? '';
       if (refId == motorId) {
-        await db.collection('Motor_Sewa').doc(doc.id).update({'status': 'selesai'});
+        await db.collection(FirestoreCollections.motorSewa).doc(doc.id).update({'status': 'selesai'});
       }
     }
 
-    await db.collection('Motor').doc(motorId).update({'status': 'tersedia'});
+    await db.collection(FirestoreCollections.motor).doc(motorId).update({'status': 'tersedia'});
   }
 
   Future<void> addMotorcycle(MotorcycleModel motorcycle) async {
     final db = ref.read(firestoreServiceProvider).db;
-    await db.collection('Motor').add(motorcycle.toMap());
+    await db.collection(FirestoreCollections.motor).add(motorcycle.toMap());
   }
 
   /// Hapus motor secara soft-delete
   Future<void> deleteMotor(String motorId) async {
     final db = ref.read(firestoreServiceProvider).db;
-    await db.collection('Motor').doc(motorId).update({'status': 'dihapus'});
+    await db.collection(FirestoreCollections.motor).doc(motorId).update({'status': 'dihapus'});
   }
 }
 

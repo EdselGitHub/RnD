@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+/// Kumpulan warna tema aplikasi RnD Dewi Sri Bali.
 class AppColors {
   // Primary - Bali Red/Orange
   static const Color primary = Color(0xFFE55A2B);
   static const Color primaryLight = Color(0xFFFF8A65);
   static const Color primaryDark = Color(0xFFC44420);
+  static const Color primaryDeep = Color(0xFF8B1A0A);
 
   // Secondary - Tropical Green
   static const Color secondary = Color(0xFF2E7D32);
@@ -40,6 +42,7 @@ class AppColors {
   static const Color cardFinance = Color(0xFF66BB6A);
 }
 
+/// Kumpulan string/label statis yang digunakan di seluruh aplikasi.
 class AppStrings {
   static const String appName = 'RnD Dewi Sri';
   static const String appSubtitle = 'Manajemen Penginapan Bali';
@@ -65,13 +68,14 @@ class AppStrings {
 
   // Laundry Status
   static const String laundryProcessing = 'Diproses';
-  static const String laundrydone = 'Selesai';
+  static const String laundryDone = 'Selesai';
 
   // Room Service Status
   static const String rsWaiting = 'Menunggu';
   static const String rsDone = 'Selesai';
 }
 
+/// Konstanta dimensi (padding, radius, icon size) yang digunakan di seluruh aplikasi.
 class AppDimensions {
   static const double paddingXS = 4.0;
   static const double paddingS = 8.0;

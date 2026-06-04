@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import '../../../core/constants/app_constants.dart';
-import '../../../core/models/finance_record_model.dart';
-import '../constants/finance_constants.dart';
-import '../services/finance_resolver_service.dart';
+import '../core/constants/app_constants.dart';
+import '../core/models/finance_record_model.dart';
+import '../core/constants/finance_constants.dart';
+import '../core/services/finance_resolver_service.dart';
+import '../core/constants/firestore_constants.dart';
 
 class FinanceTransactionItem extends StatelessWidget {
   final FinanceRecordModel record;
@@ -119,7 +120,7 @@ class FinanceTransactionItem extends StatelessWidget {
       String? finalUrl = record.kartuIdentitas;
       if (finalUrl == null || finalUrl.isEmpty) {
         final resDocs = await FirebaseFirestore.instance
-            .collection('Reservasi')
+            .collection(FirestoreCollections.reservasi)
             .where('total', isEqualTo: record.amount)
             .get();
         for (var doc in resDocs.docs) {
@@ -130,7 +131,7 @@ class FinanceTransactionItem extends StatelessWidget {
             final tamuId = data['tamu_id'];
             if (tamuId is String) {
               final tamuDoc = await FirebaseFirestore.instance
-                  .collection('Tamu')
+                  .collection(FirestoreCollections.tamu)
                   .doc(tamuId)
                   .get();
               finalUrl = tamuDoc.data()?['kartu_identitas'] as String?;

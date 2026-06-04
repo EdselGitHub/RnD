@@ -4,12 +4,13 @@ import '../../../core/models/reservation_model.dart';
 import '../../../core/models/room_model.dart';
 import '../../../core/models/guest_model.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
+import '../../../core/constants/firestore_constants.dart';
 
 final roomsStreamProvider = StreamProvider<List<RoomModel>>((ref) async* {
   final db = ref.watch(firestoreServiceProvider).db;
   final reservationsAsync = ref.watch(reservationsStreamProvider);
 
-  final roomsStream = db.collection('Ruangan').orderBy('nama').snapshots();
+  final roomsStream = db.collection(FirestoreCollections.ruangan).orderBy('nama').snapshots();
 
   await for (final snap in roomsStream) {
     var rooms = snap.docs
@@ -48,7 +49,7 @@ final reservationsStreamProvider =
     StreamProvider<List<ReservationModel>>((ref) {
   final db = ref.watch(firestoreServiceProvider).db;
   return db
-      .collection('Reservasi')
+      .collection(FirestoreCollections.reservasi)
       .orderBy('checkin', descending: true)
       .snapshots()
       .map((snap) =>
@@ -70,12 +71,12 @@ class ReservationNotifier extends AsyncNotifier<void> {
 
     // Save guest to Tamu collection
     final guestMap = guest.toMap();
-    final guestRef = await db.collection('Tamu').add(guestMap);
+    final guestRef = await db.collection(FirestoreCollections.tamu).add(guestMap);
 
     // Save reservation to Reservasi collection with DocumentReference
-    await db.collection('Reservasi').add({
-      'room_id': db.collection('Ruangan').doc(room.id),
-      'tamu_id': db.collection('Tamu').doc(guestRef.id),
+    await db.collection(FirestoreCollections.reservasi).add({
+      'room_id': db.collection(FirestoreCollections.ruangan).doc(room.id),
+      'tamu_id': db.collection(FirestoreCollections.tamu).doc(guestRef.id),
       'checkin': Timestamp.fromDate(checkIn),
       'checkout': Timestamp.fromDate(checkOut),
       'total': total,
@@ -83,10 +84,10 @@ class ReservationNotifier extends AsyncNotifier<void> {
     });
 
     // Update room status
-    await db.collection('Ruangan').doc(room.id).update({'status': 'tidak tersedia'});
+    await db.collection(FirestoreCollections.ruangan).doc(room.id).update({'status': 'tidak tersedia'});
 
     // Record finance in Transaksi_Keuangan
-    await db.collection('Transaksi_Keuangan').add({
+    await db.collection(FirestoreCollections.transaksiKeuangan).add({
       'kategori': 'penjualan kamar',
       'deskripsi': 'Penjualan kamar ${room.nama}',
       'jumlah': total,
@@ -99,11 +100,11 @@ class ReservationNotifier extends AsyncNotifier<void> {
   Future<void> checkOut(ReservationModel reservation) async {
     final db = ref.read(firestoreServiceProvider).db;
     await db
-        .collection('Reservasi')
+        .collection(FirestoreCollections.reservasi)
         .doc(reservation.id)
         .update({'status': 'selesai'});
     await db
-        .collection('Ruangan')
+        .collection(FirestoreCollections.ruangan)
         .doc(reservation.roomId)
         .update({'status': 'tersedia'});
   }
@@ -111,19 +112,19 @@ class ReservationNotifier extends AsyncNotifier<void> {
 
   Future<void> addRoom(RoomModel room) async {
     final db = ref.read(firestoreServiceProvider).db;
-    await db.collection('Ruangan').add(room.toMap());
+    await db.collection(FirestoreCollections.ruangan).add(room.toMap());
   }
 
   /// Set room status langsung ke 'tersedia' dari daftar kamar
   Future<void> setRoomTersedia(String roomId) async {
     final db = ref.read(firestoreServiceProvider).db;
-    await db.collection('Ruangan').doc(roomId).update({'status': 'tersedia'});
+    await db.collection(FirestoreCollections.ruangan).doc(roomId).update({'status': 'tersedia'});
   }
 
   /// Hapus kamar secara soft-delete agar laporan keuangan tidak terpengaruh
   Future<void> deleteRoom(String roomId) async {
     final db = ref.read(firestoreServiceProvider).db;
-    await db.collection('Ruangan').doc(roomId).update({'status': 'dihapus'});
+    await db.collection(FirestoreCollections.ruangan).doc(roomId).update({'status': 'dihapus'});
   }
 }
 

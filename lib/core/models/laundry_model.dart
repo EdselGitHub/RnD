@@ -124,8 +124,4 @@ class LaundryModel extends LaundryEntity {
   factory LaundryModel.fromDoc(DocumentSnapshot doc) {
     return LaundryModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
   }
-
-
-
-
 }

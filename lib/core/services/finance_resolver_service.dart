@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../core/models/finance_record_model.dart';
+import '../models/finance_record_model.dart';
+import '../constants/firestore_constants.dart';
 
 class FinanceResolverService {
   static Future<String> resolveRoomName(FinanceRecordModel r) async {
     try {
       final resDocs = await FirebaseFirestore.instance
-          .collection('Reservasi')
+          .collection(FirestoreCollections.reservasi)
           .where('total', isEqualTo: r.amount)
           .get();
       for (var doc in resDocs.docs) {
@@ -15,7 +16,7 @@ class FinanceResolverService {
           final roomId = data['room_id'];
           if (roomId is String) {
             final roomDoc = await FirebaseFirestore.instance
-                .collection('Ruangan')
+                .collection(FirestoreCollections.ruangan)
                 .doc(roomId)
                 .get();
             final roomName = roomDoc.data()?['nama'] as String?;
@@ -35,7 +36,7 @@ class FinanceResolverService {
   static Future<String> resolveLaundryDetail(FinanceRecordModel r) async {
     try {
       final docs = await FirebaseFirestore.instance
-          .collection('Laundry')
+          .collection(FirestoreCollections.laundry)
           .where('harga', isEqualTo: r.amount)
           .get();
       for (var doc in docs.docs) {
@@ -79,7 +80,7 @@ class FinanceResolverService {
   static Future<String> resolveMotorDetail(FinanceRecordModel r) async {
     try {
       final docs = await FirebaseFirestore.instance
-          .collection('Motor_Sewa')
+          .collection(FirestoreCollections.motorSewa)
           .where('total', isEqualTo: r.amount)
           .get();
       for (var doc in docs.docs) {
@@ -99,7 +100,7 @@ class FinanceResolverService {
         } else if (motorRef is String && motorRef.isNotEmpty) {
           try {
             final motorDoc = await FirebaseFirestore.instance
-                .collection('Motor')
+                .collection(FirestoreCollections.motor)
                 .doc(motorRef)
                 .get();
             motorName = motorDoc.data()?['nama'] as String? ?? '';

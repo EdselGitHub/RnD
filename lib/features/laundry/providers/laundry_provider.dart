@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/laundry_model.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
+import '../../../core/constants/firestore_constants.dart';
 
 final laundryStreamProvider = StreamProvider<List<LaundryModel>>((ref) {
   final db = ref.watch(firestoreServiceProvider).db;
@@ -10,7 +11,7 @@ final laundryStreamProvider = StreamProvider<List<LaundryModel>>((ref) {
   final Map<String, DateTime> realtimeAddedAt = {};
 
   return db
-      .collection('Laundry')
+      .collection(FirestoreCollections.laundry)
       .snapshots()
       .map((snap) {
         final now = DateTime.now();
@@ -68,7 +69,7 @@ final laundryGuestNameProvider = FutureProvider.family<String, String>((ref, tam
   final db = ref.watch(firestoreServiceProvider).db;
   
   try {
-    final tamuDoc = await db.collection('Tamu').doc(tamuId).get();
+    final tamuDoc = await db.collection(FirestoreCollections.tamu).doc(tamuId).get();
     if (tamuDoc.exists) {
       final data = tamuDoc.data();
       if (data != null && data['nama'] != null) {
@@ -78,7 +79,7 @@ final laundryGuestNameProvider = FutureProvider.family<String, String>((ref, tam
   } catch (_) {}
 
   try {
-    final userDoc = await db.collection('users').doc(tamuId).get();
+    final userDoc = await db.collection(FirestoreCollections.users).doc(tamuId).get();
     if (userDoc.exists) {
       final data = userDoc.data();
       if (data != null) {
@@ -107,14 +108,14 @@ class LaundryNotifier extends AsyncNotifier<void> {
     final harga = weight * hargaPerKG;
 
     // Save guest to Tamu collection first
-    final guestRef = await db.collection('Tamu').add({
+    final guestRef = await db.collection(FirestoreCollections.tamu).add({
       'nama': guestName,
       'no_hp': guestPhone ?? '',
     });
 
     // Save laundry order to Laundry collection
-    await db.collection('Laundry').add({
-      'tamu_id': db.collection('Tamu').doc(guestRef.id),
+    await db.collection(FirestoreCollections.laundry).add({
+      'tamu_id': db.collection(FirestoreCollections.tamu).doc(guestRef.id),
       'beratKG': weight,
       'harga': harga,
       'hargaPerKG': hargaPerKG,
@@ -125,7 +126,7 @@ class LaundryNotifier extends AsyncNotifier<void> {
     });
 
     // Finance record in Transaksi_Keuangan
-    await db.collection('Transaksi_Keuangan').add({
+    await db.collection(FirestoreCollections.transaksiKeuangan).add({
       'kategori': 'laundry',
       'deskripsi': 'Laundry Room $roomNumber ($serviceType - ${weight}KG)',
       'jumlah': harga,
@@ -137,7 +138,7 @@ class LaundryNotifier extends AsyncNotifier<void> {
 
   Future<void> updateStatus(String id, String newStatus) async {
     final db = ref.read(firestoreServiceProvider).db;
-    await db.collection('Laundry').doc(id).update({'status': newStatus});
+    await db.collection(FirestoreCollections.laundry).doc(id).update({'status': newStatus});
   }
 
   Future<void> markDone(String id) async {

@@ -1,10 +1,11 @@
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 class StorageService {
   static Future<String?> uploadKartuIdentitas(XFile imageFile) async {
     try {
-      final String fileName = DateTime.now().millisecondsSinceEpoch.toString() + '.jpg';
+      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
       final Reference ref = FirebaseStorage.instance.ref().child('kartu_identitas/$fileName');
       
       final bytes = await imageFile.readAsBytes();
@@ -18,9 +19,8 @@ class StorageService {
       
       return fullPath; // Berhasil upload, kembalikan path
     } catch (e) {
-      print('Error uploading to Firebase Storage: $e');
+      debugPrint('Error uploading to Firebase Storage: $e');
       return null;
     }
   }
 }
-

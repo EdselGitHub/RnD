@@ -46,6 +46,4 @@ class ReservationModel extends ReservationEntity {
     return ReservationModel.fromMap(
         doc.data() as Map<String, dynamic>, doc.id);
   }
-
 }
-

@@ -56,8 +56,4 @@ class RoomServiceModel extends RoomServiceEntity {
     return RoomServiceModel.fromMap(
         doc.data() as Map<String, dynamic>, doc.id);
   }
-
-
-
-
 }

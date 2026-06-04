@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/user_model.dart';
+import '../constants/firestore_constants.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -12,7 +13,7 @@ class AuthService {
 
   Future<UserModel?> getUserModel(String uid) async {
     try {
-      final doc = await _firestore.collection('Users').doc(uid).get();
+      final doc = await _firestore.collection(FirestoreCollections.users).doc(uid).get();
       if (!doc.exists) return null;
       return UserModel.fromMap(doc.data()!, uid);
     } catch (e) {

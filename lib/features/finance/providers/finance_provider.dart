@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/finance_record_model.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
+import '../../../core/constants/firestore_constants.dart';
 
 enum FinancePeriod { daily, monthly }
 
@@ -67,7 +68,7 @@ final financeRecordsProvider = StreamProvider<List<FinanceRecordModel>>((ref) {
   }
 
   streamController.onListen = () {
-    final sub1 = db.collection('Transaksi_Keuangan').snapshots().listen((snap) {
+    final sub1 = db.collection(FirestoreCollections.transaksiKeuangan).snapshots().listen((snap) {
       snap1 = snap;
       tryEmit();
     });
@@ -101,7 +102,7 @@ class FinanceNotifier extends AsyncNotifier<void> {
 
   Future<void> addExpense(String description, double amount) async {
     final db = ref.read(firestoreServiceProvider).db;
-    await db.collection('Transaksi_Keuangan').add({
+    await db.collection(FirestoreCollections.transaksiKeuangan).add({
       'kategori': description,
       'jumlah': amount,
       'tanggal': Timestamp.fromDate(DateTime.now()),

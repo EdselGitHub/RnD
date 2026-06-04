@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_constants.dart';
-import '../constants/finance_constants.dart';
+import '../core/constants/app_constants.dart';
+import '../core/constants/finance_constants.dart';
 
 class FinancePieChart extends StatelessWidget {
   final Map<String, double> categoryData;

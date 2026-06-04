@@ -39,6 +39,4 @@ class FinanceRecordModel extends FinanceRecordEntity {
     return FinanceRecordModel.fromMap(
         doc.data() as Map<String, dynamic>, doc.id);
   }
-
-
 }

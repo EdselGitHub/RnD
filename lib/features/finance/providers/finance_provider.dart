@@ -41,28 +41,29 @@ final financeRecordsProvider = StreamProvider<List<FinanceRecordModel>>((ref) {
     if (snap1 == null) return;
 
     final allDocs = <DocumentSnapshot>[...snap1!.docs];
-    
-    final records = allDocs
-        .map((d) => FinanceRecordModel.fromDoc(d))
-        .where((r) {
-          final inRange = r.tanggal.isAfter(start.subtract(const Duration(seconds: 1))) &&
-              r.tanggal.isBefore(end);
-          
-          final bool matchCategory;
-          if (category == null) {
-            matchCategory = true;
-          } else if (category == 'pengeluaran') {
-            matchCategory = !r.isIncome;
-          } else if (category == 'kamar') {
-            matchCategory = r.kategori == 'kamar' || r.kategori == 'penjualan kamar';
-          } else {
-            matchCategory = r.kategori == category;
-          }
-          
-          return inRange && matchCategory;
-        })
-        .toList()
-      ..sort((a, b) => b.tanggal.compareTo(a.tanggal));
+    final List<FinanceRecordModel> records = [];
+    for (final d in allDocs) {
+      final r = FinanceRecordModel.fromDoc(d);
+      
+      final inRange = r.tanggal.isAfter(start.subtract(const Duration(seconds: 1))) &&
+          r.tanggal.isBefore(end);
+      
+      final bool matchCategory;
+      if (category == null) {
+        matchCategory = true;
+      } else if (category == 'pengeluaran') {
+        matchCategory = !r.isIncome;
+      } else if (category == 'kamar') {
+        matchCategory = r.kategori == 'kamar' || r.kategori == 'penjualan kamar';
+      } else {
+        matchCategory = r.kategori == category;
+      }
+
+      if (inRange && matchCategory) {
+        records.add(r);
+      }
+    }
+    records.sort((a, b) => b.tanggal.compareTo(a.tanggal));
 
     streamController.add(records);
   }

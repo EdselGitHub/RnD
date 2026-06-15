@@ -84,11 +84,14 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: isCheckIn ? now : (_checkIn ?? now).add(const Duration(days: 1)),
-      firstDate: isCheckIn ? now : (_checkIn ?? now),
+      initialDate: isCheckIn ? (_checkIn ?? now) : (_checkOut ?? (_checkIn ?? now)),
+      // firstDate: isCheckIn ? now : (_checkIn ?? now),
+      // firstDate: DateTime(now.month - 1),
+      firstDate: DateTime(2026),
+      // lastDate: DateTime(2045),
       lastDate: now.add(const Duration(days: 365)),
     );
-    if (picked != null) {
+    if (picked != null) { //pilih ulsng kalo checkout lebih awal
       setState(() {
         if (isCheckIn) {
           _checkIn = picked;
@@ -139,7 +142,7 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
         return;
       }
 
-      // Check for overlapping dates
+      //cek apakah tanggal overlap
       final reservationsAsync = ref.read(reservationsStreamProvider);
       final reservations = reservationsAsync.value ?? [];
       
@@ -183,7 +186,7 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
         id: '',
         nama: _nameCtrl.text.trim(),
         noHp: _phoneCtrl.text.trim(),
-        kartuIdentitas: imageUrl, // Gunakan URL dari Firebase Storage
+        kartuIdentitas: imageUrl, //gunakan URL dari Firebase Storage
       );
 
     final nights = _checkOut!.difference(_checkIn!).inDays;
@@ -211,7 +214,7 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
               builder: (_) => PaymentScreen(
                 totalAmount: totalPrice,
                 onPaymentSuccess: () async {
-                  // Save to Firestore ONLY after payment is confirmed
+                  //simpam ke firebase jika pembayaran selesai
                   await ref.read(reservationNotifierProvider.notifier).addReservation(
                         room: room,
                         guest: guest,

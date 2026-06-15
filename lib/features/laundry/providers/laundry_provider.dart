@@ -4,64 +4,61 @@ import '../../../core/models/laundry_model.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
 import '../../../core/constants/firestore_constants.dart';
 
-final laundryStreamProvider = StreamProvider<List<LaundryModel>>((ref) {
+final laundryStreamProvider = StreamProvider<List<LaundryModel>>((ref) async* {
   final db = ref.watch(firestoreServiceProvider).db;
   bool isFirstSnapshot = true;
   // Menyimpan waktu kapan dokumen pertama kali muncul di stream (real-time)
   final Map<String, DateTime> realtimeAddedAt = {};
+  final snapshots = db.collection(FirestoreCollections.laundry).snapshots();
 
-  return db
-      .collection(FirestoreCollections.laundry)
-      .snapshots()
-      .map((snap) {
-        final now = DateTime.now();
+  await for (final snap in snapshots) {
+    final now = DateTime.now();
 
-        if (!isFirstSnapshot) {
-          // Real-time update: catat kapan dokumen BARU pertama kali terdeteksi
-          // Ini berlaku untuk dokumen dari app manapun (user app, admin app, dll)
-          for (final change in snap.docChanges) {
-            if (change.type == DocumentChangeType.added) {
-              realtimeAddedAt.putIfAbsent(change.doc.id, () => now);
-            }
-          }
+    if (!isFirstSnapshot) {
+      // Real-time update: catat kapan dokumen BARU pertama kali terdeteksi
+      // Ini berlaku untuk dokumen dari app manapun (user app, admin app, dll)
+      for (final change in snap.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          realtimeAddedAt.putIfAbsent(change.doc.id, () => now);
         }
-        isFirstSnapshot = false;
+      }
+    }
+    isFirstSnapshot = false;
 
-        // Parse setiap dokumen secara individual — jika satu gagal, skip saja
-        final list = snap.docs
-            .map((d) {
-              try {
-                return LaundryModel.fromDoc(d);
-              } catch (_) {
-                return null;
-              }
-            })
-            .whereType<LaundryModel>()
-            .toList();
+    // Parse setiap dokumen secara individual — jika satu gagal, skip saja menggunakan loop for biasa
+    final List<LaundryModel> list = [];
+    for (final d in snap.docs) {
+      try {
+        final item = LaundryModel.fromDoc(d);
+        list.add(item);
+      } catch (_) {
+        // Skip jika gagal parsing
+      }
+    }
 
-        list.sort((a, b) {
-          // Prioritas 1: waktu real-time (dokumen yang baru muncul saat app berjalan)
-          final aRealtime = realtimeAddedAt[a.id];
-          final bRealtime = realtimeAddedAt[b.id];
+    list.sort((a, b) {
+      // Prioritas 1: waktu real-time (dokumen yang baru muncul saat app berjalan)
+      final aRealtime = realtimeAddedAt[a.id];
+      final bRealtime = realtimeAddedAt[b.id];
 
-          final aTime = aRealtime ??
-              (a.createdAt.millisecondsSinceEpoch > 0
-                  ? a.createdAt
-                  : DateTime.fromMillisecondsSinceEpoch(0));
-          final bTime = bRealtime ??
-              (b.createdAt.millisecondsSinceEpoch > 0
-                  ? b.createdAt
-                  : DateTime.fromMillisecondsSinceEpoch(0));
+      final aTime = aRealtime ??
+          (a.createdAt.millisecondsSinceEpoch > 0
+              ? a.createdAt
+              : DateTime.fromMillisecondsSinceEpoch(0));
+      final bTime = bRealtime ??
+          (b.createdAt.millisecondsSinceEpoch > 0
+              ? b.createdAt
+              : DateTime.fromMillisecondsSinceEpoch(0));
 
-          if (aTime.millisecondsSinceEpoch != bTime.millisecondsSinceEpoch) {
-            return bTime.compareTo(aTime);
-          }
-          // Tiebreaker: doc ID descending
-          return b.id.compareTo(a.id);
-        });
+      if (aTime.millisecondsSinceEpoch != bTime.millisecondsSinceEpoch) {
+        return bTime.compareTo(aTime);
+      }
+      // Tiebreaker: doc ID descending
+      return b.id.compareTo(a.id);
+    });
 
-        return list;
-      });
+    yield list;
+  }
 });
 
 final laundryGuestNameProvider = FutureProvider.family<String, String>((ref, tamuId) async {

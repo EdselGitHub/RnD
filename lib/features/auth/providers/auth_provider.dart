@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/models/user_model.dart';
-import '../../../core/services/auth_service.dart';
+import '../../../core/models/user_model.dart'; //strukttur data firestore
+import '../../../core/services/auth_service.dart'; //fungsi sdk firebase auth firestore
 
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
 

@@ -6,13 +6,12 @@ import '../../../core/services/notification_sound_service.dart';
 import '../../../core/constants/firestore_constants.dart';
 
 final roomServicesStreamProvider =
-    StreamProvider<List<RoomServiceModel>>((ref) {
+    StreamProvider<List<RoomServiceModel>>((ref) async* {
   final db = ref.watch(firestoreServiceProvider).db;
   bool isInitial = true;
-  return db
-      .collection(FirestoreCollections.cleaningRoom)
-      .snapshots()
-      .map((snap) {
+  final snapshots = db.collection(FirestoreCollections.cleaningRoom).snapshots();
+
+  await for (final snap in snapshots) {
     if (!isInitial) {
       for (var change in snap.docChanges) {
         if (change.type == DocumentChangeType.added) {
@@ -22,7 +21,12 @@ final roomServicesStreamProvider =
       }
     }
     isInitial = false;
-    final list = snap.docs.map((d) => RoomServiceModel.fromDoc(d)).toList();
+
+    final List<RoomServiceModel> list = [];
+    for (final d in snap.docs) {
+      list.add(RoomServiceModel.fromDoc(d));
+    }
+
     // Sort terbaru di atas — gunakan createdAt (alias pembuatan) dengan fallback ke doc ID
     list.sort((a, b) {
       final aTime = a.createdAt.millisecondsSinceEpoch;
@@ -32,8 +36,9 @@ final roomServicesStreamProvider =
       }
       return bTime.compareTo(aTime);
     });
-    return list;
-  });
+
+    yield list;
+  }
 });
 
 class RoomServiceNotifier extends AsyncNotifier<void> {

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../core/constants/app_constants.dart';
 import '../features/finance/providers/finance_provider.dart';
 
+///widget untuk membuat summary card pendapatan dan pengeluaran
 class FinanceSummaryCard extends StatelessWidget {
   final String? category;
   final FinancePeriod period;

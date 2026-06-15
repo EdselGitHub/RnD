@@ -13,47 +13,67 @@ final roomsStreamProvider = StreamProvider<List<RoomModel>>((ref) async* {
   final roomsStream = db.collection(FirestoreCollections.ruangan).orderBy('nama').snapshots();
 
   await for (final snap in roomsStream) {
-    var rooms = snap.docs
-        .map((d) => RoomModel.fromDoc(d))
-        .where((r) => r.status != 'dihapus')
-        .toList();
+    // 1. Mengambil data ruangan yang tidak dihapus menggunakan loop for biasa
+    final List<RoomModel> roomsList = [];
+    for (final d in snap.docs) {
+      final room = RoomModel.fromDoc(d);
+      if (room.status != 'dihapus') {
+        roomsList.add(room);
+      }
+    }
+
+    final List<RoomModel> finalRooms = [];
 
     if (reservationsAsync is AsyncData) {
       final reservations = reservationsAsync.value!;
       final now = DateTime.now();
 
-      rooms = rooms.map((room) {
-        if (room.status == 'maintenance') return room;
+      // 2. Mengecek status okupansi menggunakan loop for biasa
+      for (final room in roomsList) {
+        bool isOccupiedNow = false;
+        
+        for (final res in reservations) {
+          if (res.status == 'aktif' &&
+              res.roomId == room.id &&
+              now.compareTo(res.checkin) >= 0 &&
+              now.compareTo(res.checkout) < 0) {
+            isOccupiedNow = true;
+            break; // Jika sudah cocok, hentikan pencarian
+          }
+        }
 
-        bool isOccupiedNow = reservations.any((res) {
-          if (res.status != 'aktif') return false;
-          if (res.roomId != room.id) return false;
-          return now.compareTo(res.checkin) >= 0 && now.compareTo(res.checkout) < 0;
-        });
-
-        return RoomModel(
+        finalRooms.add(RoomModel(
           id: room.id,
           nama: room.nama,
           harga: room.harga,
           hargaMingguan: room.hargaMingguan,
           hargaBulanan: room.hargaBulanan,
           status: isOccupiedNow ? 'tidak tersedia' : 'tersedia',
-        );
-      }).toList();
+        ));
+      }
+    } else {
+      finalRooms.addAll(roomsList);
     }
-    yield rooms;
+    
+    yield finalRooms;
   }
 });
 
 final reservationsStreamProvider =
-    StreamProvider<List<ReservationModel>>((ref) {
+    StreamProvider<List<ReservationModel>>((ref) async* {
   final db = ref.watch(firestoreServiceProvider).db;
-  return db
+  final snapshots = db
       .collection(FirestoreCollections.reservasi)
       .orderBy('checkin', descending: true)
-      .snapshots()
-      .map((snap) =>
-          snap.docs.map((d) => ReservationModel.fromDoc(d)).toList());
+      .snapshots();
+
+  await for (final snap in snapshots) {
+    final List<ReservationModel> list = [];
+    for (final d in snap.docs) {
+      list.add(ReservationModel.fromDoc(d));
+    }
+    yield list;
+  }
 });
 
 class ReservationNotifier extends AsyncNotifier<void> {
@@ -69,11 +89,11 @@ class ReservationNotifier extends AsyncNotifier<void> {
   }) async {
     final db = ref.read(firestoreServiceProvider).db;
 
-    // Save guest to Tamu collection
+    // simpan guest ke Tamu collection
     final guestMap = guest.toMap();
     final guestRef = await db.collection(FirestoreCollections.tamu).add(guestMap);
 
-    // Save reservation to Reservasi collection with DocumentReference
+    // simpan reservasi ke Reservasi collection dengan DocumentReference
     await db.collection(FirestoreCollections.reservasi).add({
       'room_id': db.collection(FirestoreCollections.ruangan).doc(room.id),
       'tamu_id': db.collection(FirestoreCollections.tamu).doc(guestRef.id),
@@ -83,17 +103,17 @@ class ReservationNotifier extends AsyncNotifier<void> {
       'status': 'aktif',
     });
 
-    // Update room status
+    //update room status
     await db.collection(FirestoreCollections.ruangan).doc(room.id).update({'status': 'tidak tersedia'});
 
-    // Record finance in Transaksi_Keuangan
+    // record finance di Transaksi_Keuangan
     await db.collection(FirestoreCollections.transaksiKeuangan).add({
       'kategori': 'penjualan kamar',
       'deskripsi': 'Penjualan kamar ${room.nama}',
       'jumlah': total,
       'tanggal': Timestamp.fromDate(DateTime.now()),
       'tipe': 'income',
-      'kartu_identitas': guest.kartuIdentitas, // Simpan referensi KTP
+      'kartu_identitas': guest.kartuIdentitas, //simpan referensi KTP
     });
   }
 
@@ -115,13 +135,13 @@ class ReservationNotifier extends AsyncNotifier<void> {
     await db.collection(FirestoreCollections.ruangan).add(room.toMap());
   }
 
-  /// Set room status langsung ke 'tersedia' dari daftar kamar
+  // set room status langsung ke 'tersedia' dari daftar kamar
   Future<void> setRoomTersedia(String roomId) async {
     final db = ref.read(firestoreServiceProvider).db;
     await db.collection(FirestoreCollections.ruangan).doc(roomId).update({'status': 'tersedia'});
   }
 
-  /// Hapus kamar secara soft-delete agar laporan keuangan tidak terpengaruh
+  // hapus kamar secara soft delete agar laporan keuangan tidak terpengaruh
   Future<void> deleteRoom(String roomId) async {
     final db = ref.read(firestoreServiceProvider).db;
     await db.collection(FirestoreCollections.ruangan).doc(roomId).update({'status': 'dihapus'});

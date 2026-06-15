@@ -26,9 +26,9 @@ class DashboardStats {
   });
 }
 
-/// Auto-complete expired motor rentals in Firestore.
-/// If a rental is still 'aktif' but tanggalSelesai has passed,
-/// mark the rental as 'selesai' and the motor as 'tersedia'.
+/// auto-complete expired motor rentals di firestore.
+/// jika rental is still 'aktif' tapi tanggalSelesai has passed,
+/// tandai rental as 'selesai' dan motor as 'tersedia'.
 Future<void> _autoCompleteExpiredRentals(
   FirebaseFirestore db,
   QuerySnapshot motorSewaSnap,
@@ -45,12 +45,12 @@ Future<void> _autoCompleteExpiredRentals(
 
     if (now.isAfter(tanggalSelesai)) {
       try {
-        // Mark rental as completed
+        //tandai rental selesai 
         await db.collection(FirestoreCollections.motorSewa).doc(doc.id).update({
           'status': 'selesai',
         });
 
-        // Mark motor as available
+        //tandai motor tersedia
         final motorIdRef = data['motor_id'];
         final String motorId = motorIdRef is DocumentReference
             ? motorIdRef.id
@@ -76,7 +76,6 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
   final startOfDay = DateTime(now.year, now.month, now.day);
   final endOfDay = startOfDay.add(const Duration(days: 1));
 
-  // We use multiple streams and combine them manually since we don't have rxdart
   final roomsStream = db.collection(FirestoreCollections.ruangan).snapshots();
   final motorsStream = db.collection(FirestoreCollections.motor).snapshots();
   final motorSewaStream = db.collection(FirestoreCollections.motorSewa).snapshots();
@@ -104,69 +103,89 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
       return;
     }
 
-    // Auto-complete expired rentals in Firestore (fire-and-forget)
+    //auto complete rental yang expired
     _autoCompleteExpiredRentals(db, motorSewaSnap!);
 
     final now = DateTime.now();
 
-    final occupiedRooms = roomsSnap!.docs.where((d) {
+    int occupiedRooms = 0;
+    for (final d in roomsSnap!.docs) {
       final roomData = d.data() as Map<String, dynamic>;
-      if (roomData['status'] == 'dihapus' || roomData['status'] == 'maintenance') return false;
+      if (roomData['status'] == 'dihapus' || roomData['status'] == 'maintenance') {
+        continue;
+      }
 
-      bool isOccupiedNow = reservasiSnap!.docs.any((resDoc) {
+      bool isOccupiedNow = false;
+      for (final resDoc in reservasiSnap!.docs) {
         final resData = resDoc.data() as Map<String, dynamic>;
         
         final roomIdRef = resData['room_id'];
         final String resRoomId = roomIdRef is DocumentReference ? roomIdRef.id : (roomIdRef as String? ?? '');
 
-        if (resRoomId != d.id) return false;
+        if (resRoomId == d.id) {
+          final checkin = (resData['checkin'] as Timestamp?)?.toDate() ?? DateTime.now();
+          final checkout = (resData['checkout'] as Timestamp?)?.toDate() ?? DateTime.now();
+          
+          if (now.compareTo(checkin) >= 0 && now.compareTo(checkout) < 0) {
+            isOccupiedNow = true;
+            break;
+          }
+        }
+      }
 
-        final checkin = (resData['checkin'] as Timestamp?)?.toDate() ?? DateTime.now();
-        final checkout = (resData['checkout'] as Timestamp?)?.toDate() ?? DateTime.now();
-        
-        return now.compareTo(checkin) >= 0 && now.compareTo(checkout) < 0;
-      });
+      if (isOccupiedNow) {
+        occupiedRooms++;
+      }
+    }
 
-      return isOccupiedNow;
-    }).length;
-
-    // Calculate rented motors based on actual rental dates, not static status
-    // Uses same logic as motorcycle_list_screen: aktif + now within rental period
-    final activeMotorsDocs = motorsSnap!.docs
-        .where((d) => (d.data() as Map<String, dynamic>)['status'] != 'dihapus')
-        .toList();
+    //hitung kalkulasi sesuai rental tanggal 
+    //logika sama dengan  motorcycle_list_screen aktif saat periode rental
+    final List<DocumentSnapshot> activeMotorsDocs = [];
+    for (final d in motorsSnap!.docs) {
+      final motorData = d.data() as Map<String, dynamic>;
+      if (motorData['status'] != 'dihapus') {
+        activeMotorsDocs.add(d);
+      }
+    }
 
     int rentedMotors = 0;
     for (final motorDoc in activeMotorsDocs) {
       final motorData = motorDoc.data() as Map<String, dynamic>;
-      // Skip maintenance motors — they are neither rented nor available
+      //kalau maintanance tidak diitung disewa
       if (motorData['status'] == 'maintenance') continue;
 
-      // Check if there's any active rental for this motor where now is within rental period
-      final isRentedNow = motorSewaSnap!.docs.any((sewaDoc) {
+      // cek apakah motor sedang terental
+      bool isRentedNow = false;
+      for (final sewaDoc in motorSewaSnap!.docs) {
         final sewaData = sewaDoc.data() as Map<String, dynamic>;
         final sewaStatus = sewaData['status'] as String? ?? '';
-        if (sewaStatus != 'aktif') return false;
+        if (sewaStatus != 'aktif') continue;
 
         final motorIdRef = sewaData['motor_id'];
         final String sewaMotorId = motorIdRef is DocumentReference
             ? motorIdRef.id
             : (motorIdRef as String? ?? '');
-        if (sewaMotorId != motorDoc.id) return false;
+        if (sewaMotorId != motorDoc.id) continue;
 
         final tanggal =
             (sewaData['tanggal'] as Timestamp?)?.toDate();
         final tanggalSelesai =
             (sewaData['tanggal_selesai'] as Timestamp?)?.toDate();
         
-        if (tanggal == null) return false;
+        if (tanggal == null) continue;
 
         if (tanggalSelesai == null) {
-          return now.compareTo(tanggal) >= 0;
+          if (now.compareTo(tanggal) >= 0) {
+            isRentedNow = true;
+            break;
+          }
+        } else {
+          if (now.compareTo(tanggal) >= 0 && now.compareTo(tanggalSelesai) < 0) {
+            isRentedNow = true;
+            break;
+          }
         }
-
-        return now.compareTo(tanggal) >= 0 && now.compareTo(tanggalSelesai) < 0;
-      });
+      }
 
       if (isRentedNow) rentedMotors++;
     }
@@ -182,13 +201,19 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
       }
     }
 
-    final lowStockDrinks = drinksSnap!.docs
-        .map((d) => (d.data() as Map<String, dynamic>)['nama'] as String)
-        .toList();
+    final List<String> lowStockDrinks = [];
+    for (final d in drinksSnap!.docs) {
+      final drinkName = (d.data() as Map<String, dynamic>)['nama'] as String? ?? '';
+      lowStockDrinks.add(drinkName);
+    }
 
-    final activeRoomsCount = roomsSnap!.docs
-        .where((d) => (d.data() as Map<String, dynamic>)['status'] != 'dihapus')
-        .length;
+    int activeRoomsCount = 0;
+    for (final d in roomsSnap!.docs) {
+      final roomData = d.data() as Map<String, dynamic>;
+      if (roomData['status'] != 'dihapus') {
+        activeRoomsCount++;
+      }
+    }
 
     final activeMotorsCount = activeMotorsDocs.length;
 

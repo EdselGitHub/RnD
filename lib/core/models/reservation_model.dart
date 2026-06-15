@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../entities/reservation_entity.dart';
 
 class ReservationModel extends ReservationEntity {
-  // Cached display fields (not stored in Firestore)
+  //tidak dimasukkan ke firestore
   final String _roomName;
   final String _guestName;
 
@@ -22,7 +22,7 @@ class ReservationModel extends ReservationEntity {
 
   int get nights => checkout.difference(checkin).inDays;
 
-  // Getter aliases used in UI
+  // dipakai di ui
   String get roomNumber => _roomName;
   String get guestName => _guestName;
 

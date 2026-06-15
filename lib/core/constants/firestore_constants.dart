@@ -16,63 +16,63 @@ class FirestoreCollections {
   static const String transaksiKeuangan = 'Transaksi_Keuangan';
 }
 
-/// Field name constants for Firestore documents
+///nama constans field firestore
 class FirestoreFields {
   FirestoreFields._();
 
-  // Common
+  //umum
   static const String id = 'id';
   static const String status = 'status';
   static const String createdAt = 'createdAt';
   static const String createdAtIndex = 'created_at';
 
-  // Users
+  //users
   static const String name = 'name';
   static const String email = 'email';
   static const String password = 'password';
   static const String role = 'role';
 
-  // Tamu
+  //tamu
   static const String nama = 'nama';
   static const String noHp = 'no_hp';
   static const String kartuIdentitas = 'kartu_identitas';
 
-  // Ruangan
+  //ruangan
   static const String harga = 'harga';
 
-  // Reservasi
+  //reservasi
   static const String tamuId = 'tamu_id';
   static const String roomId = 'room_id';
   static const String checkin = 'checkin';
   static const String checkout = 'checkout';
   static const String total = 'total';
 
-  // Motor
+  //motor
   static const String motorId = 'motor_id';
   static const String tanggal = 'tanggal';
 
-  // Motor Sewa
+  //motor Sewa
   static const String tanggalKembali = 'tanggal_kembali';
   static const String pembuatan = 'pembuatan';
   static const String hargaPerhari = 'harga_perhari';
 
-  // Laundry
+  //laundry
   static const String beratKG = 'beratKG';
   static const String hargaPerKG = 'hargaPerKG';
   static const String jenis = 'jenis';
   static const String noKamar = 'no_kamar';
 
-  // Room Service / CleaningRoom
+  //room Service / CleaningRoom
   static const String jadwal = 'jadwal';
 
-  // Minuman
+  //minuman
   static const String stok = 'stok';
 
-  // Minuman Transaksi
+  //minuman Transaksi
   static const String minumanId = 'minuman_id';
   static const String qty = 'qty';
 
-  // Transaksi Keuangan
+  //transaksi Keuangan
   static const String kategori = 'kategori';
   static const String jumlah = 'jumlah';
   static const String tipe = 'tipe';

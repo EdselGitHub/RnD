@@ -83,7 +83,7 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
       drawer: const AppDrawer(),
       body: Column(
         children: [
-          // Period & Filter Tabs
+          //periode dan filter
           Container(
             color: Colors.white,
             padding: const EdgeInsets.all(AppDimensions.paddingM),
@@ -209,11 +209,11 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
                     child: RepaintBoundary(
                       key: _repaintBoundaryKey,
                       child: Container(
-                        color: Colors.white, // ensure background is white for the image
+                        color: Colors.white, //background putih untuk gambar
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Total Card
+                            //total card
                             FinanceSummaryCard(
                               category: category,
                               period: period,
@@ -223,7 +223,7 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
                             ),
                             const SizedBox(height: 20),
 
-                            // Pie Chart
+                            //pie chart
                             categoryAsync.when(
                               loading: () => const SizedBox.shrink(),
                               error: (_, __) => const SizedBox.shrink(),

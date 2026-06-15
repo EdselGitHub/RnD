@@ -7,6 +7,7 @@ import '../../../widgets/app_drawer.dart';
 import '../../../widgets/stat_card.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../realtime_screen_test.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -255,9 +256,9 @@ class _QuickMenuGrid extends ConsumerWidget {
       if (!isKaryawan)
         ('Laporan', Icons.bar_chart_rounded, AppColors.primary, () => context.go('/finance')),
       ('Pengeluaran', Icons.money_off_rounded, AppColors.error, () => AppDrawer.showExpenseDialog(context)),
-      // ('Realtime\nTest', Icons.speed_rounded, const Color(0xFFF43F5E), () {
-      //   Navigator.push(context, MaterialPageRoute(builder: (context) => const RealtimeTestScreen()));
-      // }),
+      ('Realtime\nTest', Icons.speed_rounded, const Color(0xFFF43F5E), () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const RealtimeTestScreen()));
+      }),
     ];
     return GridView.count(
       crossAxisCount: 4,

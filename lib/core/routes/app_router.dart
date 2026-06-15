@@ -10,7 +10,10 @@ import '../../features/motor/screens/motorcycle_list_screen.dart';
 import '../../features/motor/screens/add_rental_screen.dart';
 import '../../features/laundry/screens/laundry_list_screen.dart';
 import '../../features/room_service/screens/room_service_screen.dart';
+import '../../features/room_service/screens/add_schedule_screen.dart';
 import '../../features/drinks/screens/drinks_screen.dart';
+import '../../features/drinks/screens/add_drink_screen.dart';
+import '../../features/drinks/screens/drink_transaction_screen.dart';
 import '../../features/finance/screens/finance_report_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -27,12 +30,12 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       if (!isLoggedIn && !isLoginPage) return '/login';
       if (isLoggedIn && isLoginPage) {
-        // Petugas langsung ke room-service
+        //petugas langsung ke room-service
         if (isPetugas) return '/room-service';
         return '/dashboard';
       }
 
-      // Petugas hanya boleh akses room-service
+      //petugas hanya boleh akses room-service
       if (isLoggedIn && isPetugas) {
         final loc = state.matchedLocation;
         if (!loc.startsWith('/room-service')) {

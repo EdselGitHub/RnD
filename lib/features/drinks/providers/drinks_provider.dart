@@ -5,25 +5,35 @@ import '../../../core/models/drink_transaction_model.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
 import '../../../core/constants/firestore_constants.dart';
 
-final drinksStreamProvider = StreamProvider<List<DrinkModel>>((ref) {
+final drinksStreamProvider = StreamProvider<List<DrinkModel>>((ref) async* {
   final db = ref.watch(firestoreServiceProvider).db;
-  return db
-      .collection(FirestoreCollections.minuman)
-      .orderBy('nama')
-      .snapshots()
-      .map((snap) => snap.docs.map((d) => DrinkModel.fromDoc(d)).toList());
+  final snapshots = db.collection(FirestoreCollections.minuman).orderBy('nama').snapshots();
+
+  await for (final snap in snapshots) {
+    final List<DrinkModel> list = [];
+    for (final d in snap.docs) {
+      list.add(DrinkModel.fromDoc(d));
+    }
+    yield list;
+  }
 });
 
 final drinkTransactionsStreamProvider =
-    StreamProvider<List<DrinkTransactionModel>>((ref) {
+    StreamProvider<List<DrinkTransactionModel>>((ref) async* {
   final db = ref.watch(firestoreServiceProvider).db;
-  return db
+  final snapshots = db
       .collection(FirestoreCollections.pembelianMinuman)
       .orderBy('pembuatan', descending: true)
       .limit(50)
-      .snapshots()
-      .map((snap) =>
-          snap.docs.map((d) => DrinkTransactionModel.fromDoc(d)).toList());
+      .snapshots();
+
+  await for (final snap in snapshots) {
+    final List<DrinkTransactionModel> list = [];
+    for (final d in snap.docs) {
+      list.add(DrinkTransactionModel.fromDoc(d));
+    }
+    yield list;
+  }
 });
 
 class DrinksNotifier extends AsyncNotifier<void> {
@@ -52,10 +62,10 @@ class DrinksNotifier extends AsyncNotifier<void> {
     final total = drink.harga * quantity;
     final newStock = drink.stok - quantity;
 
-    // Update stock in Minuman
+    //update stok di minuman
     await db.collection(FirestoreCollections.minuman).doc(drink.id).update({'stok': newStock});
 
-    // Record transaction in Pembelian_Minuman
+    //record transacti in Pembelian_Minuman
     final now = DateTime.now();
     await db.collection(FirestoreCollections.pembelianMinuman).add({
       'minuman_id': db.collection(FirestoreCollections.minuman).doc(drink.id),
@@ -65,7 +75,7 @@ class DrinksNotifier extends AsyncNotifier<void> {
       'total': total,
     });
 
-    // Finance record in Transaksi_Keuangan
+    //record finance di Transaksi_Keuangan
     await db.collection(FirestoreCollections.transaksiKeuangan).add({
       'kategori': 'minuman',
       'deskripsi': 'Minuman ${drink.nama} ($quantity x)',

@@ -147,7 +147,7 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
   final double _hargaPerKG = 15000;
   bool _isLoading = false;
 
-  final _services = ['regular', 'express', 'dry clean'];
+  final _services = ['regular', 'express'];
 
   @override
   void dispose() {

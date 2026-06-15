@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/constants/app_constants.dart';
 import '../core/constants/finance_constants.dart';
 
+///widget untuk membuat pie chart pendapatan
 class FinancePieChart extends StatelessWidget {
   final Map<String, double> categoryData;
   final double grossIncome;

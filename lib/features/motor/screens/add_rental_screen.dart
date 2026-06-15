@@ -63,13 +63,12 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
       return;
     }
 
-    // Check for overlapping rental dates (mirroring room reservation pattern)
-    // Use .future to ensure we wait for data if it's still loading
+    // cek overlap sama seperti di reservasi
     List<MotorRentalModel> rentals = [];
     try {
       rentals = await ref.read(motorRentalsStreamProvider.future);
     } catch (_) {
-      // If error, assume empty or handle gracefully
+      // jika error, asumsi kosong / bisa handle
     }
 
     final isOverlap = rentals.any((res) {
@@ -77,13 +76,13 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
         return false;
       }
       
-      // Strip time components to ensure pure date comparisons
+      //strip tanggal
       final start1 = DateUtils.dateOnly(_startDate!);
       final end1 = DateUtils.dateOnly(_endDate!);
       final start2 = DateUtils.dateOnly(res.tanggal);
       final end2 = DateUtils.dateOnly(res.tanggalSelesai);
 
-      // overlap condition: (startDate < res.tanggalSelesai && endDate > res.tanggal)
+      // overlap: (startDate < res.tanggalSelesai && endDate > res.tanggal)
       return start1.isBefore(end2) && end1.isAfter(start2);
     });
 
@@ -126,7 +125,7 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
               builder: (_) => PaymentScreen(
                 totalAmount: totalPrice.toDouble(),
                 onPaymentSuccess: () async {
-                  // Save ONLY after payment is confirmed
+                  //simpan kalau sudah payment
                   await ref.read(motorNotifierProvider.notifier).addRental(
                         motorcycle: motor,
                         guestName: _nameCtrl.text.trim(),

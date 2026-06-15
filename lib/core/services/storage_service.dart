@@ -17,7 +17,7 @@ class StorageService {
       await uploadTask;
       final String fullPath = ref.fullPath;
       
-      return fullPath; // Berhasil upload, kembalikan path
+      return fullPath; // berhasil upload, kembalikan path
     } catch (e) {
       debugPrint('Error uploading to Firebase Storage: $e');
       return null;

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../entities/room_service_entity.dart';
 
 class RoomServiceModel extends RoomServiceEntity {
-  // Cached display field (not stored in Firestore)
+  //tidak dimasukkan ke firestore
   final String _roomNumber;
 
   const RoomServiceModel({
@@ -16,13 +16,13 @@ class RoomServiceModel extends RoomServiceEntity {
     String roomNumber = '',
   }) : _roomNumber = roomNumber;
 
-  // Getter aliases used in UI
+  // dipakai di ui
   String get roomNumber => _roomNumber;
   DateTime get scheduledAt => jadwal;
   DateTime get createdAt => pembuatan;
 
   factory RoomServiceModel.fromMap(Map<String, dynamic> map, String id) {
-    // Coba berbagai nama field untuk waktu pembuatan (kompatibel dengan user app)
+    // mencoba berbagai nama field untuk waktu pembuatan (sama dengan user app)
     DateTime pembuatan = DateTime.fromMillisecondsSinceEpoch(0);
     for (final key in ['pembuatan', 'createdAt', 'created_at', 'tanggal']) {
       if (map[key] is Timestamp) {
@@ -31,7 +31,7 @@ class RoomServiceModel extends RoomServiceEntity {
       }
     }
 
-    // Coba berbagai nama field untuk nomor kamar (kompatibel dengan user app)
+    // Coba berbagai nama field untuk nomor kamar (sama dengan user app)
     String roomNumber = map['room_number'] as String? ?? '';
     if (roomNumber.isEmpty) {
       roomNumber = map['no_kamar'] as String? ?? map['roomNumber'] as String? ?? '';

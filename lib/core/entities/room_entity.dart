@@ -4,7 +4,7 @@ class RoomEntity {
   final double harga;
   final double hargaMingguan;
   final double hargaBulanan;
-  final String status; // 'tersedia' | 'tidak tersedia' | 'maintenance'
+  final String status; // 'tersedia' | 'tidak tersedia'
   final String tipe;
 
   const RoomEntity({

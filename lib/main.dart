@@ -102,7 +102,7 @@ class FirebaseFallbackScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Aplikasi tidak dapat terhubung ke server (Firebase belum tersedia). Silakan periksa koneksi internet Anda atau hubungi administrator.',
+                    'Aplikasi tidak dapat terhubung ke server (Database belum tersedia). Silakan periksa koneksi internet Anda atau hubungi admin.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,

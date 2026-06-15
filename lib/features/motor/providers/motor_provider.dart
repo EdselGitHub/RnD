@@ -12,45 +12,68 @@ final motorcyclesStreamProvider = StreamProvider<List<MotorcycleModel>>((ref) as
   final motorsStream = db.collection(FirestoreCollections.motor).orderBy('nama').snapshots();
 
   await for (final snap in motorsStream) {
-    var motors = snap.docs
-        .map((d) => MotorcycleModel.fromDoc(d))
-        .where((m) => m.status != 'dihapus')
-        .toList();
+    // 1. Mengambil data motor yang tidak dihapus menggunakan loop for biasa
+    final List<MotorcycleModel> motorsList = [];
+    for (final d in snap.docs) {
+      final motor = MotorcycleModel.fromDoc(d);
+      if (motor.status != 'dihapus') {
+        motorsList.add(motor);
+      }
+    }
+
+    final List<MotorcycleModel> finalMotors = [];
 
     if (rentalsAsync is AsyncData) {
       final rentals = rentalsAsync.value!;
       final now = DateTime.now();
 
-      motors = motors.map((motor) {
-        if (motor.status == 'maintenance') return motor;
+      // 2. Mengecek status rental menggunakan loop for biasa
+      for (final motor in motorsList) {
+        if (motor.status == 'maintenance') {
+          finalMotors.add(motor);
+          continue;
+        }
 
-        bool isOccupiedNow = rentals.any((res) {
-          if (res.status != 'aktif') return false;
-          if (res.motorId != motor.id) return false;
-          return now.compareTo(res.tanggal) >= 0 && now.compareTo(res.tanggalSelesai) < 0;
-        });
+        bool isOccupiedNow = false;
+        for (final res in rentals) {
+          if (res.status == 'aktif' &&
+              res.motorId == motor.id &&
+              now.compareTo(res.tanggal) >= 0 &&
+              now.compareTo(res.tanggalSelesai) < 0) {
+            isOccupiedNow = true;
+            break; // Jika sudah cocok, hentikan pencarian
+          }
+        }
 
-        return MotorcycleModel(
+        finalMotors.add(MotorcycleModel(
           id: motor.id,
           nama: motor.nama,
           harga: motor.harga,
           status: isOccupiedNow ? 'disewa' : 'tersedia',
-        );
-      }).toList();
+        ));
+      }
+    } else {
+      finalMotors.addAll(motorsList);
     }
-    yield motors;
+    yield finalMotors;
   }
 });
 
 final motorRentalsStreamProvider =
-    StreamProvider<List<MotorRentalModel>>((ref) {
+    StreamProvider<List<MotorRentalModel>>((ref) async* {
   final db = ref.watch(firestoreServiceProvider).db;
-  return db
+  final snapshots = db
       .collection(FirestoreCollections.motorSewa)
       .orderBy('pembuatan', descending: true)
-      .snapshots()
-      .map((snap) =>
-          snap.docs.map((d) => MotorRentalModel.fromDoc(d)).toList());
+      .snapshots();
+
+  await for (final snap in snapshots) {
+    final List<MotorRentalModel> list = [];
+    for (final d in snap.docs) {
+      list.add(MotorRentalModel.fromDoc(d));
+    }
+    yield list;
+  }
 });
 
 class MotorNotifier extends AsyncNotifier<void> {

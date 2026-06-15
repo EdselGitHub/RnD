@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_constants.dart';
 
 class FinanceConstants {
+  //nama constans untuk keuangan
   static const List<String> categories = [
     'kamar',
     'motor',
@@ -10,6 +11,7 @@ class FinanceConstants {
     'pengeluaran'
   ];
 
+  //nama constans untuk warna
   static const Map<String, Color> categoryColors = {
     'penjualan kamar': AppColors.cardRoom,
     'kamar': AppColors.cardRoom,
@@ -19,6 +21,7 @@ class FinanceConstants {
     'pengeluaran': AppColors.error,
   };
 
+  //nama constans untuk label
   static const Map<String, String> categoryLabels = {
     'penjualan kamar': 'Kamar',
     'kamar': 'Kamar',
@@ -28,6 +31,7 @@ class FinanceConstants {
     'pengeluaran': 'Pengeluaran',
   };
 
+  //nama constans untuk icon
   static IconData getCategoryIcon(String category) {
     if (category == 'pengeluaran') return Icons.money_off_rounded;
     switch (category) {

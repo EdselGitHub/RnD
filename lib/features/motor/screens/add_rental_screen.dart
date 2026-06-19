@@ -110,7 +110,7 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
             id: widget.motorcycleId ?? '',
             nama: widget.plateNumber ?? '',
             harga: 0,
-            status: 'tersedia'),
+            status: AppStrings.motorAvailable),
       );
 
       final days = _endDate!.difference(_startDate!).inDays;

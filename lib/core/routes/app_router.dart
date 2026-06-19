@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../constants/app_constants.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
@@ -26,7 +27,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggedIn = authState.value != null || 
           (authNotifierState.value != null);
       final isLoginPage = state.matchedLocation == '/login';
-      final isPetugas = authNotifierState.value?.role == 'petugas';
+      final isPetugas = authNotifierState.value?.role == AppStrings.rolePetugas;
 
       if (!isLoggedIn && !isLoginPage) return '/login';
       if (isLoggedIn && isLoginPage) {

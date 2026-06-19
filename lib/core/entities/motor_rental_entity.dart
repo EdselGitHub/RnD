@@ -2,8 +2,8 @@ class MotorRentalEntity {
   final String id;
   final String motorId; // reference to Motor
   final String tamuId; // reference to Tamu
-  final double hargaPerhari; // 150000
-  final String status; // 'aktif' | 'selesai' | 'dibatalkan'
+  final double hargaPerhari;
+  final String status; // 'aktif' | 'selesai'
   final DateTime tanggal;
   final DateTime tanggalSelesai;
   final DateTime pembuatan; // tanggal order dibuat

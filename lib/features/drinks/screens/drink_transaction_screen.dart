@@ -23,7 +23,7 @@ class _DrinkTransactionScreenState
   bool _isLoading = false;
 
   Future<void> _sell(DrinkModel drink) async {
-    setState(() => _isLoading = true);
+    setState(() => _isLoading = true); //loading dan interaksi tombol nonaktif
     try {
       final userModel = await ref.read(currentUserModelProvider.future);
       await ref.read(drinksNotifierProvider.notifier).sellDrink(
@@ -53,6 +53,7 @@ class _DrinkTransactionScreenState
     final currency =
         NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
+//fungsi ui minuman yang ada
     return Scaffold(
       appBar: AppBar(title: Text('Jual ${widget.drinkName ?? 'Minuman'}')),
       body: drinksAsync.when(
@@ -94,7 +95,7 @@ class _DrinkTransactionScreenState
                             ? AppColors.error
                             : AppColors.textSecondary)),
                 const SizedBox(height: 32),
-                // Quantity selector
+                //pemilihan quantiti
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

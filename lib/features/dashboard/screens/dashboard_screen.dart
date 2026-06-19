@@ -17,7 +17,7 @@ class DashboardScreen extends ConsumerWidget {
     final statsAsync = ref.watch(dashboardStatsProvider);
     final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     final userAsync = ref.watch(currentUserModelProvider);
-    final isKaryawan = userAsync.value?.role == 'karyawan';
+    final isKaryawan = userAsync.value?.role == AppStrings.roleKaryawan;
 
     return Scaffold(
       appBar: AppBar(
@@ -256,9 +256,9 @@ class _QuickMenuGrid extends ConsumerWidget {
       if (!isKaryawan)
         ('Laporan', Icons.bar_chart_rounded, AppColors.primary, () => context.go('/finance')),
       ('Pengeluaran', Icons.money_off_rounded, AppColors.error, () => AppDrawer.showExpenseDialog(context)),
-      ('Realtime\nTest', Icons.speed_rounded, const Color(0xFFF43F5E), () {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => const RealtimeTestScreen()));
-      }),
+      // ('Realtime\nTest', Icons.speed_rounded, const Color(0xFFF43F5E), () {
+      //   Navigator.push(context, MaterialPageRoute(builder: (context) => const RealtimeTestScreen()));
+      // }),
     ];
     return GridView.count(
       crossAxisCount: 4,

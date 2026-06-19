@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/finance/providers/finance_provider.dart';
 import '../core/constants/app_constants.dart';
+import 'package:intl/intl.dart';
 
 class AppDrawer extends ConsumerWidget {
   const AppDrawer({super.key});
@@ -42,7 +43,7 @@ class AppDrawer extends ConsumerWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                if (userAsync.value?.role != 'petugas') ...[
+                if (userAsync.value?.role != AppStrings.rolePetugas) ...[
                   _DrawerItem(
                     icon: Icons.dashboard_rounded,
                     title: 'Dashboard',
@@ -75,7 +76,7 @@ class AppDrawer extends ConsumerWidget {
                   color: AppColors.secondary,
                   onTap: () => context.go('/room-service'),
                 ),
-                if (userAsync.value?.role != 'petugas') ...[
+                if (userAsync.value?.role != AppStrings.rolePetugas) ...[
                   _DrawerItem(
                     icon: Icons.local_drink_rounded,
                     title: 'Minuman & Stok',
@@ -91,7 +92,7 @@ class AppDrawer extends ConsumerWidget {
                       AppDrawer.showExpenseDialog(context);
                     },
                   ),
-                  if (userAsync.value?.role != 'karyawan')
+                  if (userAsync.value?.role != AppStrings.roleKaryawan)
                     _DrawerItem(
                       icon: Icons.bar_chart_rounded,
                       title: 'Laporan Keuangan',
@@ -138,62 +139,99 @@ class AppDrawer extends ConsumerWidget {
     );
   }
 
-  static void showExpenseDialog(BuildContext rootContext) {
+  static void showExpenseDialog(BuildContext rootContext) { //pengeluaran
     final descCtrl = TextEditingController();
     final amountCtrl = TextEditingController();
+    DateTime selectedExpensDate = DateTime.now();
 
     showDialog(
       context: rootContext,
       builder: (BuildContext dialogContext) {
         return Consumer(
           builder: (context, ref, _) {
-            return AlertDialog(
-              title: const Text('Catat Pengeluaran'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: descCtrl,
-                decoration: const InputDecoration(labelText: 'Jenis Pengeluaran'),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: amountCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Nominal Pengeluaran'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
+            //perlu pakai stateful builder supaya state tanggal didalam dialog diperbarui saat dipilih
+            return StatefulBuilder(
+              builder: (context, setDialogState) {
+                return AlertDialog (
+                  title: const Text('Catat Pengeluaran'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: descCtrl,
+                        decoration: const InputDecoration(labelText: 'Jenis Pengeluaran'),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: amountCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Nominal Pengeluaran'),
+                      ),
+                      const SizedBox(height: 16),
+                      //baris untuk memilih tanggal pengeluaran 
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              DateFormat('dd MMMM yyyy', 'id_ID').format(selectedExpensDate),
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: selectedExpensDate,
+                                firstDate: DateTime(2026),
+                                lastDate: DateTime.now().add(const Duration(days: 365)),
+                              );
+                              if (picked != null){
+                                setDialogState((){
+                                  selectedExpensDate = picked;
+                                });
+                              }
+                            },
+                            child: const Text('Pilih Tanggal')
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: (){
+                        Navigator.of(dialogContext).pop();
+                      },
+                      child: const Text('Batal'),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                      onPressed: () async{
+                        final desc = descCtrl.text.trim();
+                        final amtText = amountCtrl.text.trim();
+                        if(desc.isNotEmpty && amtText.isNotEmpty) {
+                          final amount = double.tryParse(amtText) ?? 0.0;
+                          try{
+                            //kirim selectedExpense date ke notofier
+                            await ref.read(financeNotifierProvider.notifier).addExpense(desc, amount, selectedExpensDate);
+                            //tutup dialog setelah berhasil
+                            if (dialogContext.mounted){
+                              Navigator.of(dialogContext).pop();
+                            }
+                          }catch(e){
+                            //tampilkan pesan error kalau gagal
+                            debugPrint('error menyimpan pengeluaran: $e');
+                          }
+                        }
+                      },
+                      child: const Text('Simpan', style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                );
               },
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-              onPressed: () async {
-                final desc = descCtrl.text.trim();
-                final amtText = amountCtrl.text.trim();
-                if (desc.isNotEmpty && amtText.isNotEmpty) {
-                  final amount = double.tryParse(amtText) ?? 0.0;
-                  try {
-                    await ref
-                        .read(financeNotifierProvider.notifier)
-                        .addExpense(desc, amount);
-                    if (dialogContext.mounted) {
-                      Navigator.of(dialogContext).pop();
-                    }
-                  } catch (e) {
-                    debugPrint('Error saving expense: $e');
-                  }
-                }
-              },
-              child: const Text('Simpan', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        );
+            );
           },
         );
       },

@@ -27,6 +27,8 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
+  bool _isCustomPrice = false;
+  final _customPriceCtrl = TextEditingController();
   
   XFile? _idCardImage;
   final _imagePicker = ImagePicker();
@@ -39,6 +41,7 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
   void dispose() {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
+    _customPriceCtrl.dispose();
     super.dispose();
   }
 
@@ -49,6 +52,7 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
     }
   }
 
+  //untuk menampilkan opsi upload foto ktp / paspor
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
@@ -84,11 +88,19 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: isCheckIn ? (_checkIn ?? now) : (_checkOut ?? (_checkIn ?? now)),
-      // firstDate: isCheckIn ? now : (_checkIn ?? now),
-      // firstDate: DateTime(now.month - 1),
-      firstDate: DateTime(2026),
-      // lastDate: DateTime(2045),
+      //   initialDate: isCheckIn ? (_checkIn ?? now) : (_checkOut ?? (_checkIn ?? now)),
+      // // firstDate: isCheckIn ? now : (_checkIn ?? now),
+      // // firstDate: DateTime(now.month - 1),
+      // firstDate: DateTime(2026),
+      // // lastDate: DateTime(2045),
+      initialDate: isCheckIn 
+          ? (_checkIn ?? now) 
+          : (_checkOut != null && !_checkOut!.isBefore(_checkIn ?? now) 
+              ? _checkOut! 
+              : (_checkIn?.add(const Duration(days: 1)) ?? now.add(const Duration(days: 1)))),
+      firstDate: isCheckIn 
+          ? DateTime(2026) 
+          : (_checkIn?.add(const Duration(days: 1)) ?? now.add(const Duration(days: 1))),
       lastDate: now.add(const Duration(days: 365)),
     );
     if (picked != null) { //pilih ulsng kalo checkout lebih awal
@@ -113,6 +125,15 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
       );
       return;
     }
+    if (_checkOut!.isBefore(_checkIn!) || _checkOut!.isAtSameMomentAs(_checkIn!)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tanggal check-out harus setelah tanggal check-in'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
     if (_idCardImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -122,11 +143,11 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
       return;
     }
 
-    // Tampilkan loading indicator
+    //tampilkan model loading
     setState(() => _isLoading = true);
 
     try {
-      // Upload foto ke Firebase Storage
+      //upload foto ke firebase storage
       String? imageUrl = await StorageService.uploadKartuIdentitas(_idCardImage!);
 
       if (imageUrl == null) {
@@ -148,12 +169,12 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
       
       bool isOverlap = reservations.any((res) {
         if (res.roomId != widget.roomId || res.status != 'aktif') return false;
-        // Strip time components to ensure pure date comparisons
+        //strip time components to ensure pure date comparisons
         final checkInDate = DateUtils.dateOnly(_checkIn!);
         final checkOutDate = DateUtils.dateOnly(_checkOut!);
         final resCheckin = DateUtils.dateOnly(res.checkin);
         final resCheckout = DateUtils.dateOnly(res.checkout);
-        // overlap condition: (checkIn < res.checkout && checkOut > res.checkin)
+        //kondisi overlap: (checkIn < res.checkout && checkOut > res.checkin)
         return checkInDate.isBefore(resCheckout) && checkOutDate.isAfter(resCheckin);
       });
 
@@ -170,11 +191,11 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
         return;
       }
 
-      // Get room data
+      //getter data ruangan
       final roomsAsync = ref.read(roomsStreamProvider);
       final rooms = roomsAsync.value ?? [];
       final room = rooms.firstWhere(
-        (r) => r.id == widget.roomId,
+        (r) => r.id == widget.roomId, //=> return {}
         orElse: () => RoomModel(
             id: widget.roomId ?? '',
             nama: widget.roomNumber ?? '',
@@ -186,24 +207,43 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
         id: '',
         nama: _nameCtrl.text.trim(),
         noHp: _phoneCtrl.text.trim(),
-        kartuIdentitas: imageUrl, //gunakan URL dari Firebase Storage
+        kartuIdentitas: imageUrl, //gunakan URL dari firebase storage
       );
 
     final nights = _checkOut!.difference(_checkIn!).inDays;
     double totalPrice = 0;
-    int remainingNights = nights;
 
-    if (room.hargaBulanan > 0 && remainingNights >= 30) {
-      final months = remainingNights ~/ 30;
-      totalPrice += months * room.hargaBulanan;
-      remainingNights %= 30;
+     if (_isCustomPrice) {
+      totalPrice = double.tryParse(_customPriceCtrl.text) ?? 0.0;
+    } else {
+      final nights = _checkOut!.difference(_checkIn!).inDays;
+      int remainingNights = nights;
+      if (room.hargaBulanan > 0 && remainingNights >= 30) {
+        final months = remainingNights ~/ 30;
+        totalPrice += months * room.hargaBulanan;
+        remainingNights %= 30;
+      }
+      if (room.hargaMingguan > 0 && remainingNights >= 7) {
+        final weeks = remainingNights ~/ 7;
+        totalPrice += weeks * room.hargaMingguan;
+        remainingNights %= 7;
+      }
+      totalPrice += remainingNights * room.harga;
     }
-    if (room.hargaMingguan > 0 && remainingNights >= 7) {
-      final weeks = remainingNights ~/ 7;
-      totalPrice += weeks * room.hargaMingguan;
-      remainingNights %= 7;
-    }
-    totalPrice += remainingNights * room.harga;
+
+    // int remainingNights = nights;
+
+    // if (room.hargaBulanan > 0 && remainingNights >= 30) {
+    //   final months = remainingNights ~/ 30;
+    //   totalPrice += months * room.hargaBulanan;
+    //   remainingNights %= 30;
+    // }
+    // if (room.hargaMingguan > 0 && remainingNights >= 7) {
+    //   final weeks = remainingNights ~/ 7;
+    //   totalPrice += weeks * room.hargaMingguan;
+    //   remainingNights %= 7;
+    // }
+    // totalPrice += remainingNights * room.harga;
 
       if (mounted) {
         Future.microtask(() {
@@ -266,7 +306,13 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
     );
 
     double totalPrice = 0;
-    int remainingNights = nights;
+
+    if (_isCustomPrice) {
+      //jika harga kustom akrif, parse dari input text field
+      totalPrice = double.tryParse(_customPriceCtrl.text) ?? 0.0;
+    } else {
+
+      int remainingNights = nights;
 
     if (room.hargaBulanan > 0 && remainingNights >= 30) {
       final months = remainingNights ~/ 30;
@@ -279,8 +325,13 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
       totalPrice += weeks * room.hargaMingguan;
       remainingNights %= 7;
     }
-
     totalPrice += remainingNights * room.harga;
+    }
+
+    // double totalPrice = 0;
+
+
+    // totalPrice += remainingNights * room.harga;
 
     return Scaffold(
       appBar: AppBar(title: Text('Reservasi Kamar ${widget.roomNumber ?? ''}')),
@@ -320,7 +371,7 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              // Date Selection
+              //pemilihan date
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(AppDimensions.paddingM),
@@ -402,7 +453,62 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Guest Data
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppDimensions.paddingM),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Metode Biaya',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      const SizedBox(height: 8),
+                      SwitchListTile(
+                        title: const Text('Gunakan Harga Kustom (Manual)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                        subtitle: const Text('Nonaktifkan perhitungan otomatis untuk mengisi harga sendiri', style: TextStyle(fontSize: 11)),
+                        value: _isCustomPrice,
+                        activeColor: AppColors.primary,
+                        contentPadding: EdgeInsets.zero,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _isCustomPrice = value;
+                            if (!value) {
+                              _customPriceCtrl.clear();
+                            }
+                          });
+                        },
+                      ),
+                      if (_isCustomPrice) ...[
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _customPriceCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Masukkan Harga Total (Rp)',
+                            prefixIcon: Icon(Icons.money_rounded),
+                            hintText: 'Contoh: 500000',
+                          ),
+                          onChanged: (val) {
+                            setState(() {});
+                          },
+                          validator: (v) {
+                            if (_isCustomPrice && (v == null || v.isEmpty)) {
+                              return 'Harga kustom wajib diisi jika mode manual aktif';
+                            }
+                            if (v != null && double.tryParse(v) == null) {
+                              return 'Masukkan angka yang valid';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              //guest data
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(AppDimensions.paddingM),

@@ -17,7 +17,7 @@ class FinanceExportService {
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
     final pngBytes = byteData!.buffer.asUint8List();
 
-    // Buat PDF
+    //buat PDF
     final pdf = pw.Document();
     final pdfImage = pw.MemoryImage(pngBytes);
 

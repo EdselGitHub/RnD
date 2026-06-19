@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import '../constants/app_constants.dart';
 import '../entities/user_entity.dart';
 
 class UserModel extends UserEntity {
@@ -16,7 +16,7 @@ class UserModel extends UserEntity {
       uid: uid,
       email: map['email'] as String? ?? '',
       name: map['name'] as String? ?? '',
-      role: map['role'] as String? ?? 'karyawan',
+      role: map['role'] as String? ?? AppStrings.roleKaryawan,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }

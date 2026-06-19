@@ -7,11 +7,11 @@ import '../../../widgets/stat_card.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/finance_constants.dart';
 import '../../../core/services/finance_export_service.dart';
-import '../../../widgets/period_tab.dart';
+import '../widgets/period_tab.dart';
 import '../../../widgets/filter_chip_widget.dart';
-import '../../../widgets/finance_summary_card.dart';
-import '../../../widgets/finance_pie_chart.dart';
-import '../../../widgets/finance_transaction_item.dart';
+import '../widgets/finance_summary_card.dart';
+import '../widgets/finance_pie_chart.dart';
+import '../widgets/finance_transaction_item.dart';
 
 class FinanceReportScreen extends ConsumerStatefulWidget {
   const FinanceReportScreen({super.key});
@@ -126,6 +126,10 @@ class _FinanceReportScreenState extends ConsumerState<FinanceReportScreen> {
                           final current = ref.read(financeSelectedDateProvider);
                           ref.read(financeSelectedDateProvider.notifier).state =
                               DateTime(current.year, current.month - 1, 1);
+                          final min_date = (DateTime(2026, 1, 1));
+                          if (current.isBefore(min_date)) {
+                            ref.read(financeSelectedDateProvider.notifier).state = current;
+                          }
                         },
                       ),
                       Text(

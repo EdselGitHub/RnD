@@ -3,7 +3,7 @@ class LaundryEntity {
   final String tamuId; // reference to Tamu
   final double beratKG;
   final double harga;
-  final double hargaPerKG; // default 15000
+  final double hargaPerKG; 
   final String jenis; // 'regular'
   final String status; // 'menunggu' | 'proses' | 'selesai'
   final String roomNumber;

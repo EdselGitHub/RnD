@@ -95,9 +95,9 @@ class _AddScheduleScreenState extends ConsumerState<AddScheduleScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // DateTime picker
-                InkWell(
-                  onTap: () async {
+                // tombol dateTime picker
+                InkWell( //widget agar area dalem bisa ditekan
+                  onTap: () async { //membuka kalender
                     final now = DateTime.now();
                     final date = await showDatePicker(
                         context: context,
@@ -114,7 +114,7 @@ class _AddScheduleScreenState extends ConsumerState<AddScheduleScreen> {
                       }
                     }
                   },
-                  child: Container(
+                  child: Container( //tampilan kotak dengan teks pilih tanggal dan waktu
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: AppColors.surfaceVariant,
@@ -137,7 +137,7 @@ class _AddScheduleScreenState extends ConsumerState<AddScheduleScreen> {
                 ),
                 const SizedBox(height: 12),
                 TextField(
-                  controller: _notesCtrl,
+                  controller: _notesCtrl, //mengambil inputan teks dari user (opsional)
                   maxLines: 2,
                   decoration: const InputDecoration(
                       labelText: 'Deskripsi (opsional)',
@@ -147,7 +147,7 @@ class _AddScheduleScreenState extends ConsumerState<AddScheduleScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _submit,
+                    onPressed: _isLoading ? null : _submit, //mengecek apakah sedang loading atau tidak, jika ya maka tidak bisa ditekan
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text('Simpan Jadwal'),

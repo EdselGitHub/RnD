@@ -3,7 +3,6 @@ class FirestoreCollections {
   FirestoreCollections._();
 
   static const String users = 'Users';
-  static const String usersLower = 'users';
   static const String tamu = 'Tamu';
   static const String ruangan = 'Ruangan';
   static const String reservasi = 'Reservasi';

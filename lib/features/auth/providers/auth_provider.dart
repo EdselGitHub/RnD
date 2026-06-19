@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; //pustaka utama untuk manajemen state
 import '../../../core/models/user_model.dart'; //strukttur data firestore
 import '../../../core/services/auth_service.dart'; //fungsi sdk firebase auth firestore
 

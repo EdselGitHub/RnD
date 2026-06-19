@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/laundry_model.dart';
 import '../../dashboard/providers/dashboard_provider.dart';
 import '../../../core/constants/firestore_constants.dart';
+import '../../../core/constants/app_constants.dart';
 
 final laundryStreamProvider = StreamProvider<List<LaundryModel>>((ref) async* {
   final db = ref.watch(firestoreServiceProvider).db;
@@ -25,19 +26,19 @@ final laundryStreamProvider = StreamProvider<List<LaundryModel>>((ref) async* {
     }
     isFirstSnapshot = false;
 
-    // Parse setiap dokumen secara individual — jika satu gagal, skip saja menggunakan loop for biasa
+    //parse setiap dokumen secara individual — jika satu gagal, skip saja menggunakan loop
     final List<LaundryModel> list = [];
     for (final d in snap.docs) {
       try {
         final item = LaundryModel.fromDoc(d);
         list.add(item);
       } catch (_) {
-        // Skip jika gagal parsing
+        //skip jika gagal parsing
       }
     }
 
     list.sort((a, b) {
-      // Prioritas 1: waktu real-time (dokumen yang baru muncul saat app berjalan)
+      //prioritas 1: waktu real-time (dokumen yang baru muncul saat app berjalan)
       final aRealtime = realtimeAddedAt[a.id];
       final bRealtime = realtimeAddedAt[b.id];
 
@@ -53,7 +54,7 @@ final laundryStreamProvider = StreamProvider<List<LaundryModel>>((ref) async* {
       if (aTime.millisecondsSinceEpoch != bTime.millisecondsSinceEpoch) {
         return bTime.compareTo(aTime);
       }
-      // Tiebreaker: doc ID descending
+      // tiebreaker: doc ID descending
       return b.id.compareTo(a.id);
     });
 
@@ -104,25 +105,25 @@ class LaundryNotifier extends AsyncNotifier<void> {
     final db = ref.read(firestoreServiceProvider).db;
     final harga = weight * hargaPerKG;
 
-    // Save guest to Tamu collection first
+    //simpan guest ke Tamu collection
     final guestRef = await db.collection(FirestoreCollections.tamu).add({
       'nama': guestName,
       'no_hp': guestPhone ?? '',
     });
 
-    // Save laundry order to Laundry collection
+    //simpan laundru ke collection Laundry
     await db.collection(FirestoreCollections.laundry).add({
       'tamu_id': db.collection(FirestoreCollections.tamu).doc(guestRef.id),
       'beratKG': weight,
       'harga': harga,
       'hargaPerKG': hargaPerKG,
       'jenis': serviceType,
-      'status': 'menunggu',
+      'status': AppStrings.laundryWaiting,
       'no_kamar': roomNumber,
       'createdAt': FieldValue.serverTimestamp(),
     });
 
-    // Finance record in Transaksi_Keuangan
+    //finance record di Transaksi_Keuangan
     await db.collection(FirestoreCollections.transaksiKeuangan).add({
       'kategori': 'laundry',
       'deskripsi': 'Laundry Room $roomNumber ($serviceType - ${weight}KG)',
@@ -139,11 +140,11 @@ class LaundryNotifier extends AsyncNotifier<void> {
   }
 
   Future<void> markDone(String id) async {
-    await updateStatus(id, 'selesai');
+    await updateStatus(id, AppStrings.laundryDone);
   }
 
   Future<void> markProses(String id) async {
-    await updateStatus(id, 'proses');
+    await updateStatus(id, AppStrings.laundryProcessing);
   }
 }
 

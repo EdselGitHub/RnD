@@ -36,7 +36,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           );
       if (!mounted) return;
       final user = ref.read(authNotifierProvider).value;
-      if (user?.role == 'petugas') {
+      if (user?.role == AppStrings.rolePetugas) {
         context.go('/room-service');
       } else {
         context.go('/dashboard');

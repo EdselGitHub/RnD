@@ -13,7 +13,7 @@ final roomsStreamProvider = StreamProvider<List<RoomModel>>((ref) async* {
   final roomsStream = db.collection(FirestoreCollections.ruangan).orderBy('nama').snapshots();
 
   await for (final snap in roomsStream) {
-    // 1. Mengambil data ruangan yang tidak dihapus menggunakan loop for biasa
+    // 1.mengambil data ruangan yang tidak dihapus menggunakan loop for
     final List<RoomModel> roomsList = [];
     for (final d in snap.docs) {
       final room = RoomModel.fromDoc(d);
@@ -28,7 +28,7 @@ final roomsStreamProvider = StreamProvider<List<RoomModel>>((ref) async* {
       final reservations = reservationsAsync.value!;
       final now = DateTime.now();
 
-      // 2. Mengecek status okupansi menggunakan loop for biasa
+      // 2.mengecek status okupansi menggunakan loop for biasa
       for (final room in roomsList) {
         bool isOccupiedNow = false;
         
@@ -111,7 +111,8 @@ class ReservationNotifier extends AsyncNotifier<void> {
       'kategori': 'penjualan kamar',
       'deskripsi': 'Penjualan kamar ${room.nama}',
       'jumlah': total,
-      'tanggal': Timestamp.fromDate(DateTime.now()),
+      'tanggal': Timestamp.fromDate(checkIn),
+    //  'tanggal': Timestamp.fromDate(DateTime.now()),
       'tipe': 'income',
       'kartu_identitas': guest.kartuIdentitas, //simpan referensi KTP
     });

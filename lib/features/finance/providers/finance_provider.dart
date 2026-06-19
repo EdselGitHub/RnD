@@ -101,12 +101,13 @@ class FinanceNotifier extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
-  Future<void> addExpense(String description, double amount) async {
+  Future<void> addExpense(String description, double amount, DateTime expenseDate) async {
     final db = ref.read(firestoreServiceProvider).db;
     await db.collection(FirestoreCollections.transaksiKeuangan).add({
       'kategori': description,
       'jumlah': amount,
-      'tanggal': Timestamp.fromDate(DateTime.now()),
+      // 'tanggal': Timestamp.fromDate(DateTime.now()),
+      'tanggal': Timestamp.fromDate(expenseDate),
       'tipe': 'expense',
     });
   }

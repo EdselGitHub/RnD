@@ -39,10 +39,9 @@ class MotorcycleListScreen extends ConsumerWidget {
             itemBuilder: (_, i) {
               final m = motorcycles[i];
               final isAvailable = m.isAvailable;
-              final isMaintenance = m.status == 'maintenance';
 
               List<MotorRentalModel> motorRentals = [];
-              if (!isAvailable && !isMaintenance && rentalsAsync is AsyncData) {
+              if (!isAvailable && rentalsAsync is AsyncData) {
                 final now = DateTime.now();
                 motorRentals = rentalsAsync.value!.where((res) => 
                   res.motorId == m.id && 
@@ -66,17 +65,13 @@ class MotorcycleListScreen extends ConsumerWidget {
                             decoration: BoxDecoration(
                               color: isAvailable
                                   ? AppColors.available.withOpacity(0.12)
-                                  : isMaintenance
-                                      ? AppColors.warning.withOpacity(0.12)
-                                      : AppColors.occupied.withOpacity(0.12),
+                                  : AppColors.occupied.withOpacity(0.12),
                               borderRadius: BorderRadius.circular(AppDimensions.radiusM),
                             ),
                             child: Icon(Icons.two_wheeler_rounded,
                                 color: isAvailable
                                     ? AppColors.available
-                                    : isMaintenance
-                                        ? AppColors.warning
-                                        : AppColors.occupied),
+                                    : AppColors.occupied),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -107,14 +102,10 @@ class MotorcycleListScreen extends ConsumerWidget {
                               StatusBadge(
                                 label: isAvailable
                                     ? AppStrings.motorAvailable
-                                    : isMaintenance
-                                        ? 'Maintenance'
-                                        : AppStrings.motorRented,
+                                    : AppStrings.motorRented,
                                 color: isAvailable
                                     ? AppColors.available
-                                    : isMaintenance
-                                        ? AppColors.warning
-                                        : AppColors.occupied,
+                                    : AppColors.occupied,
                               ),
                               if (isAvailable) ...[
                                 const SizedBox(height: 6),
@@ -128,7 +119,7 @@ class MotorcycleListScreen extends ConsumerWidget {
                                           fontWeight: FontWeight.w600)),
                                 ),
                               ],
-                              if (!isAvailable && !isMaintenance) ...[
+                              if (!isAvailable) ...[
                                 const SizedBox(height: 6),
                                 GestureDetector(
                                   onTap: () {
@@ -295,7 +286,7 @@ class MotorcycleListScreen extends ConsumerWidget {
                   id: '',
                   nama: nameCtrl.text.trim(),
                   harga: double.tryParse(priceCtrl.text) ?? 0,
-                  status: 'tersedia',
+                  status: AppStrings.motorAvailable,
                 );
                 await ref.read(motorNotifierProvider.notifier).addMotorcycle(motor);
                 if (context.mounted) Navigator.pop(context);

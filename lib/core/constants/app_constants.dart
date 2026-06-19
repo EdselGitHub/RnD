@@ -57,6 +57,8 @@ class AppStrings {
   static const String roleAdmin = 'admin';
   static const String roleOwner = 'owner';
   static const String roleKaryawan = 'karyawan';
+  static const String rolePetugas = 'petugas';
+
 
   // room status
   static const String roomAvailable = 'Tersedia';
@@ -65,14 +67,17 @@ class AppStrings {
   // motor status
   static const String motorAvailable = 'Tersedia';
   static const String motorRented = 'Disewa';
+  static const String motorDelete = 'Dihapus';
 
   // laundry status
   static const String laundryProcessing = 'Diproses';
   static const String laundryDone = 'Selesai';
+  static const String laundryWaiting = 'Menunggu';
 
   //room service status
   static const String rsWaiting = 'Menunggu';
   static const String rsDone = 'Selesai';
+  static const String rsProses = 'Proses';
 }
 
 ///konstanta dimensi (padding, radius, icon size) yang digunakan di seluruh aplikasi

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/constants/firestore_constants.dart';
+import '../../../core/constants/app_constants.dart';
 
 final firestoreServiceProvider =
     Provider<FirestoreService>((ref) => FirestoreService());
@@ -57,7 +58,7 @@ Future<void> _autoCompleteExpiredRentals(
             : (motorIdRef as String? ?? '');
         if (motorId.isNotEmpty) {
           await db.collection(FirestoreCollections.motor).doc(motorId).update({
-            'status': 'tersedia',
+            'status': AppStrings.motorAvailable,
           });
         }
         debugPrint(
@@ -143,7 +144,7 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
     final List<DocumentSnapshot> activeMotorsDocs = [];
     for (final d in motorsSnap!.docs) {
       final motorData = d.data() as Map<String, dynamic>;
-      if (motorData['status'] != 'dihapus') {
+      if (motorData['status'] != AppStrings.motorDelete && motorData['status'] != 'dihapus') {
         activeMotorsDocs.add(d);
       }
     }
@@ -151,8 +152,6 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
     int rentedMotors = 0;
     for (final motorDoc in activeMotorsDocs) {
       final motorData = motorDoc.data() as Map<String, dynamic>;
-      //kalau maintanance tidak diitung disewa
-      if (motorData['status'] == 'maintenance') continue;
 
       // cek apakah motor sedang terental
       bool isRentedNow = false;

@@ -51,7 +51,7 @@ class DrinksScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(AppDimensions.paddingM),
                   child: Column(
                     children: [
-                      // Existing drink info row
+                      //info minuman dan stok
                       InkWell(
                         onTap: () => context.push('/drinks/transaction',
                             extra: {'drinkId': d.id, 'drinkName': d.nama}),
@@ -108,7 +108,7 @@ class DrinksScreen extends ConsumerWidget {
                         ),
                       ),
                       const Divider(height: 20),
-                      // Action buttons row
+                      //button baris
                       Row(
                         children: [
                           Expanded(

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import '../core/constants/app_constants.dart';
-import '../core/models/finance_record_model.dart';
-import '../core/constants/finance_constants.dart';
-import '../core/services/finance_resolver_service.dart';
-import '../core/constants/firestore_constants.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/models/finance_record_model.dart';
+import '../../../core/constants/finance_constants.dart';
+import '../../../core/services/finance_resolver_service.dart';
+import '../../../core/constants/firestore_constants.dart';
 
 class FinanceTransactionItem extends StatelessWidget {
   final FinanceRecordModel record;

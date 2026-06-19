@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../entities/motorcycle_entity.dart';
+import '../constants/app_constants.dart';
 
 class MotorcycleModel extends MotorcycleEntity {
   const MotorcycleModel({
@@ -10,7 +11,7 @@ class MotorcycleModel extends MotorcycleEntity {
     required super.status,
   });
 
-  bool get isAvailable => status == 'tersedia';
+  bool get isAvailable => status == AppStrings.motorAvailable || status == 'tersedia';
 
 
 
@@ -19,7 +20,7 @@ class MotorcycleModel extends MotorcycleEntity {
       id: id,
       nama: map['nama'] as String? ?? '',
       harga: (map['harga'] as num?)?.toDouble() ?? 0.0,
-      status: map['status'] as String? ?? 'tersedia',
+      status: map['status'] as String? ?? AppStrings.motorAvailable,
     );
   }
 

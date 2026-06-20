@@ -80,6 +80,8 @@ class MotorcycleListScreen extends ConsumerWidget {
                               children: [
                                 Text(m.nama,
                                     style: const TextStyle(fontWeight: FontWeight.bold)),
+                                Text('Plat: ${m.platNumber}',
+                                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                                 Text('${currency.format(m.harga)}/hari',
                                     style: const TextStyle(fontSize: 12)),
                                 ...motorRentals.map((res) => Padding(
@@ -111,7 +113,7 @@ class MotorcycleListScreen extends ConsumerWidget {
                                 const SizedBox(height: 6),
                                 GestureDetector(
                                   onTap: () => context.push('/motor-rentals/add',
-                                      extra: {'motorcycleId': m.id, 'plateNumber': m.nama}),
+                                      extra: {'motorcycleId': m.id, 'plateNumber': '${m.nama} (${m.platNumber})'}),
                                   child: const Text('Sewa',
                                       style: TextStyle(
                                           color: AppColors.primary,
@@ -198,7 +200,7 @@ class MotorcycleListScreen extends ConsumerWidget {
                                             onPressed: () {
                                               Navigator.pop(ctx);
                                               context.push('/motor-rentals/add',
-                                                  extra: {'motorcycleId': m.id, 'plateNumber': m.nama});
+                                                  extra: {'motorcycleId': m.id, 'plateNumber': '${m.nama} (${m.platNumber})'});
                                             },
                                             child: const Text('Tambah Sewa Baru'),
                                           ),
@@ -259,6 +261,7 @@ class MotorcycleListScreen extends ConsumerWidget {
 
   void _showAddMotorDialog(BuildContext context, WidgetRef ref) {
     final nameCtrl = TextEditingController();
+    final platCtrl = TextEditingController();
     final priceCtrl = TextEditingController();
 
     showDialog(
@@ -269,11 +272,21 @@ class MotorcycleListScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Nama Motor')),
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Nama Motor'),
+              ),
               const SizedBox(height: 8),
-              TextField(controller: priceCtrl, keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Harga/hari')),
+              TextField(
+                controller: platCtrl,
+                decoration: const InputDecoration(labelText: 'Nomor Plat'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: priceCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Harga/hari'),
+              ),
             ],
           ),
         ),
@@ -281,10 +294,11 @@ class MotorcycleListScreen extends ConsumerWidget {
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
           ElevatedButton(
             onPressed: () async {
-              if (nameCtrl.text.isNotEmpty && priceCtrl.text.isNotEmpty) {
+              if (nameCtrl.text.isNotEmpty && priceCtrl.text.isNotEmpty && platCtrl.text.isNotEmpty) {
                 final motor = MotorcycleModel(
                   id: '',
                   nama: nameCtrl.text.trim(),
+                  platNumber: platCtrl.text.trim(),
                   harga: double.tryParse(priceCtrl.text) ?? 0,
                   status: AppStrings.motorAvailable,
                 );

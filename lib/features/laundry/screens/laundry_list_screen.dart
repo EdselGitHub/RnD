@@ -144,7 +144,7 @@ class _AddLaundryScreenState extends ConsumerState<AddLaundryScreen> {
   final _weightCtrl = TextEditingController();
   final _roomCtrl = TextEditingController();
   String _serviceType = 'regular';
-  final double _hargaPerKG = 15000;
+  final double _hargaPerKG = 10000;
   bool _isLoading = false;
 
   final _services = ['regular', 'express'];

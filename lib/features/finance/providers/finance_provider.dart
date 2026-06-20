@@ -111,6 +111,53 @@ class FinanceNotifier extends AsyncNotifier<void> {
       'tipe': 'expense',
     });
   }
+
+  Future<void> deleteTransaction(FinanceRecordModel record) async {
+    final db = ref.read(firestoreServiceProvider).db;
+
+    // Jika transaksi ini adalah penyewaan kamar
+    if (record.category == 'kamar' || record.category == 'penjualan kamar') {
+      try {
+        final resDocs = await db
+            .collection(FirestoreCollections.reservasi)
+            .where('total', isEqualTo: record.amount)
+            .get();
+
+        for (var doc in resDocs.docs) {
+          final data = doc.data();
+          final checkinTime = (data['checkin'] as Timestamp?)?.toDate();
+
+          //cari reservasi yang tanggal checkin-nya sama/berdekatan dengan transaksi
+          if (checkinTime != null &&
+              checkinTime.difference(record.date).abs().inMinutes < 120) {
+            
+            //1. batalkan status reservasi
+            await db
+                .collection(FirestoreCollections.reservasi)
+                .doc(doc.id)
+                .update({'status': 'dibatalkan'});
+
+            //2.ubah status ruangan menjadi tersedia kembali
+            final roomIdRef = data['room_id'];
+            if (roomIdRef is DocumentReference) {
+              await roomIdRef.update({'status': 'tersedia'});
+            } else if (roomIdRef is String && roomIdRef.isNotEmpty) {
+              await db
+                  .collection(FirestoreCollections.ruangan)
+                  .doc(roomIdRef)
+                  .update({'status': 'tersedia'});
+            }
+            break;
+          }
+        }
+      } catch (e) {
+        //abaikan atau log error agar tidak menghentikan proses hapus transaksi utama
+      }
+    }
+
+    //hapus record transaksi keuangan
+    await db.collection(FirestoreCollections.transaksiKeuangan).doc(record.id).delete();
+  }
 }
 
 final financeNotifierProvider =

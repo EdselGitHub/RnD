@@ -19,24 +19,24 @@ import '../../features/finance/screens/finance_report_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
-  final authNotifierState = ref.watch(authNotifierProvider);
+  final authNotifierState = ref.watch(authNotifierProvider); //pantau status user login
 
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/login', //awal masuk login
     redirect: (context, state) {
       final isLoggedIn = authState.value != null || 
           (authNotifierState.value != null);
       final isLoginPage = state.matchedLocation == '/login';
       final isPetugas = authNotifierState.value?.role == AppStrings.rolePetugas;
 
-      if (!isLoggedIn && !isLoginPage) return '/login';
+      if (!isLoggedIn && !isLoginPage) return '/login'; //jika belum login tapi mau masuk halaman lain arahkan ke login
       if (isLoggedIn && isLoginPage) {
-        //petugas langsung ke room-service
+       // FUNGSI petugas langsung ke room-service
         if (isPetugas) return '/room-service';
         return '/dashboard';
       }
 
-      //petugas hanya boleh akses room-service
+      //FUNGSI petugas hanya boleh akses room-service
       if (isLoggedIn && isPetugas) {
         final loc = state.matchedLocation;
         if (!loc.startsWith('/room-service')) {
@@ -82,7 +82,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'motorcycles',
         builder: (context, state) => const MotorcycleListScreen(),
       ),
-      GoRoute(
+      GoRoute( //
         path: '/motor-rentals/add',
         name: 'add-rental',
         builder: (context, state) {

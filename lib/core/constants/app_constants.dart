@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-///kumpulan warna aplikasi RnD Dewi Sri Bali.
+///kumpulan warna aplikasi RnD Dewi Sri Bali. //0xFF+hex
 class AppColors {
   // primary - bali red oren
   static const Color primary = Color(0xFFE55A2B);

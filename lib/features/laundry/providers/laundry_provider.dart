@@ -100,7 +100,7 @@ class LaundryNotifier extends AsyncNotifier<void> {
     required String roomNumber,
     required String serviceType,
     required double weight,
-    double hargaPerKG = 15000,
+    double hargaPerKG = 10000,
   }) async {
     final db = ref.read(firestoreServiceProvider).db;
     final harga = weight * hargaPerKG;

@@ -8,6 +8,7 @@ import 'core/constants/app_constants.dart';
 
 bool firebaseInitialized = false;
 
+//manggil firebase
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -16,7 +17,7 @@ void main() async {
   } catch (e) {
     firebaseInitialized = false;
   }
-  await initializeDateFormatting('id_ID', null);
+  await initializeDateFormatting('id_ID', null); //tanggal di layar awal
   runApp(const ProviderScope(child: RndApp()));
 }
 
@@ -26,17 +27,17 @@ class RndApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!firebaseInitialized) {
-      return MaterialApp(
+      return MaterialApp( //kalau gagal return ini
         title: 'RnD Dewi Sri Bali',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const FirebaseFallbackScreen(),
+        home: const FirebaseFallbackScreen(), // tampil layar error
       );
     }
 
     final router = ref.watch(routerProvider);
 
-    return MaterialApp.router(
+    return MaterialApp.router( //kalau berhasil muat semua sistem navigasi utamaaplikasi rnd pake GoROuter
       title: 'RnD Dewi Sri Bali',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,

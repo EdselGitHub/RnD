@@ -5,7 +5,7 @@ class ReservationEntity {
   final DateTime checkin;
   final DateTime checkout;
   final double total;
-  final String status; // 'aktif' | 'selesai' | 'dibatalkan'
+  final String status; // 'aktif' | 'selesai'
 
   const ReservationEntity({
     required this.id,

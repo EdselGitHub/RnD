@@ -5,7 +5,7 @@ import '../../../core/services/auth_service.dart'; //fungsi sdk firebase auth fi
 
 final authServiceProvider = Provider<AuthService>((ref) => AuthService());
 
-final authStateProvider = StreamProvider<User?>((ref) {
+final authStateProvider = StreamProvider<User?>((ref) { //memantau status login dari firebase
   return ref.watch(authServiceProvider).authStateChanges;
 });
 

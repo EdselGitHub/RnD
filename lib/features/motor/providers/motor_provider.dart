@@ -44,6 +44,7 @@ final motorcyclesStreamProvider = StreamProvider<List<MotorcycleModel>>((ref) as
         finalMotors.add(MotorcycleModel(
           id: motor.id,
           nama: motor.nama,
+          platNumber: motor.platNumber,
           harga: motor.harga,
           status: isOccupiedNow ? AppStrings.motorRented : AppStrings.motorAvailable,
         ));
@@ -127,11 +128,11 @@ class MotorNotifier extends AsyncNotifier<void> {
   }
 
 
-  /// Set motor status langsung ke 'tersedia' dari daftar motor
+  ///set motor status langsung ke 'tersedia' dari daftar motor
   Future<void> setMotorTersedia(String motorId) async {
     final db = ref.read(firestoreServiceProvider).db;
     
-    // Ubah status sewa yang aktif menjadi selesai agar stream tidak mengubahnya kembali menjadi 'disewa'
+    // ubah status sewa yang aktif menjadi selesai agar stream tidak mengubahnya kembali menjadi 'disewa'
     final rentalsSnap = await db.collection(FirestoreCollections.motorSewa).where('status', isEqualTo: 'aktif').get();
     for (final doc in rentalsSnap.docs) {
       final data = doc.data();
@@ -151,7 +152,7 @@ class MotorNotifier extends AsyncNotifier<void> {
     await db.collection(FirestoreCollections.motor).add(motorcycle.toMap());
   }
 
-  /// Hapus motor secara soft-delete
+  /// hapus motor secara soft-delete
   Future<void> deleteMotor(String motorId) async {
     final db = ref.read(firestoreServiceProvider).db;
     await db.collection(FirestoreCollections.motor).doc(motorId).update({'status': AppStrings.motorDelete});

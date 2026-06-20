@@ -62,9 +62,9 @@ Future<void> _autoCompleteExpiredRentals(
           });
         }
         debugPrint(
-            '[Dashboard] Auto-completed expired rental ${doc.id}, motor $motorId');
+            '[Dashboard] Complete otomatis rental selesai ${doc.id}, motor $motorId');
       } catch (e) {
-        debugPrint('[Dashboard] Error auto-completing rental ${doc.id}: $e');
+        debugPrint('[Dashboard] Error complete otomatis rental ${doc.id}: $e');
       }
     }
   }

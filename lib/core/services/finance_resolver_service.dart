@@ -42,13 +42,13 @@ class FinanceResolverService {
       for (var doc in docs.docs) {
         final data = doc.data();
 
-        // Check explicit no_kamar field (from this app)
+        //check explicit no_kamar field (dari aplikasi ini)
         final noKamar = data['no_kamar'] as String? ?? '';
         if (noKamar.isNotEmpty) {
           return 'Laundry Kamar $noKamar';
         }
 
-        // Check tamu_id for embedded room number (from guest app: "Laundry [201] - Name")
+        //periksa tamu_id untuk nomor kamar yang tertanam (dari aplikasi tamu: "Laundry [201] - Nama")
         final rawTamuId = data['tamu_id'];
         final tamuIdStr =
             rawTamuId is DocumentReference ? null : rawTamuId as String?;
@@ -57,13 +57,13 @@ class FinanceResolverService {
           if (match != null) {
             return 'Laundry Kamar ${match.group(1)}';
           }
-          // If tamu_id has a label like "Laundry [201] - Name", display it
+          //if tamu_id berisi label seperti "Laundry [201] - Name", tampilkan
           if (tamuIdStr.startsWith('Laundry')) {
             return tamuIdStr;
           }
         }
 
-        // Try to resolve guest name from tamu_id reference
+        //try untuk mendapatkan nama tamu dari tamu_id reference
         if (rawTamuId is DocumentReference) {
           try {
             final tamuDoc = await rawTamuId.get();
@@ -87,7 +87,7 @@ class FinanceResolverService {
         final data = doc.data();
         final unit = data['unit'] as String? ?? '';
 
-        // Get motor name
+        //get motor name
         final motorRef = data['motor_id'];
         String motorName = '';
         if (motorRef is DocumentReference) {

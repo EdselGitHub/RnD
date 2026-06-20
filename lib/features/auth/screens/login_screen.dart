@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../providers/auth_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -35,23 +36,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _passwordController.text,
           );
       if (!mounted) return;
-      final user = ref.read(authNotifierProvider).value;
-      if (user?.role == AppStrings.rolePetugas) {
-        context.go('/room-service');
-      } else {
-        context.go('/dashboard');
-      }
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        if (e.code == 'user-not-found') {
+          _errorMessage = 'Email tidak terdaftar.';
+        } else if (e.code == 'wrong-password') {
+          _errorMessage = 'Password salah.';
+        } else if (e.code == 'invalid-credential') {
+          _errorMessage = 'Email tidak terdaftar atau password salah.';
+        } else {
+          _errorMessage = 'Terjadi kesalahan: ${e.message}';
+        }
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         if (e.toString().contains('Akses ditolak')) {
           _errorMessage = 'Akses ditolak. Role tidak diizinkan.';
         } else {
-          _errorMessage = 'Email atau password salah. Coba lagi.';
+          _errorMessage = 'Terjadi kesalahan sistem. Coba lagi.';
         }
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -171,7 +180,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 16),
 
-                          // Password
+                          //password
                           TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,

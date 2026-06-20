@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/models/finance_record_model.dart';
 import '../../../core/constants/finance_constants.dart';
 import '../../../core/services/finance_resolver_service.dart';
 import '../../../core/constants/firestore_constants.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../providers/finance_provider.dart';
 
-class FinanceTransactionItem extends StatelessWidget {
+class FinanceTransactionItem extends ConsumerWidget {
   final FinanceRecordModel record;
   final NumberFormat currencyFormatter;
   final DateFormat dateFormatter;
@@ -21,7 +24,11 @@ class FinanceTransactionItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(currentUserModelProvider);
+    final isAdminOrOwner = userAsync.value?.role == AppStrings.roleAdmin ||
+        userAsync.value?.role == AppStrings.roleOwner;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -71,8 +78,72 @@ class FinanceTransactionItem extends StatelessWidget {
                 onPressed: () => _showIdentityCard(context),
               ),
             ],
+            if (isAdminOrOwner) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.delete_outline,
+                    size: 20, color: AppColors.error),
+                tooltip: 'Hapus Transaksi',
+                onPressed: () => _showDeleteConfirmation(context, ref),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: const Text(
+            'Apakah Anda yakin ingin menghapus data keuangan ini? Jumlah saldo laporan akan berkurang otomatis.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () async {
+              Navigator.pop(ctx); //close dialog
+
+              //tunjukkan loading notification
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Menghapus data keuangan...'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+
+              try {
+                await ref
+                    .read(financeNotifierProvider.notifier)
+                    .deleteTransaction(record);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Data keuangan berhasil dihapus!'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal menghapus data: $e'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
@@ -81,7 +152,7 @@ class FinanceTransactionItem extends StatelessWidget {
     final desc = r.description;
     final cat = r.category;
 
-    // Needs resolution if description is just the bare category name
+    //perlu dicari detailnya jika deskripsi hanya berupa nama kategori saja
     final needsResolve = desc == cat || desc == 'kamar';
 
     if (!needsResolve) {
@@ -154,7 +225,7 @@ class FinanceTransactionItem extends StatelessWidget {
           : await FirebaseStorage.instance.ref(finalUrl).getDownloadURL();
 
       if (!context.mounted) return;
-      Navigator.pop(context); // close loading
+      Navigator.pop(context); //tutup loading
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
@@ -170,7 +241,7 @@ class FinanceTransactionItem extends StatelessWidget {
       );
     } catch (e) {
       if (!context.mounted) return;
-      Navigator.pop(context); // close loading
+      Navigator.pop(context); // tutup loading
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal memuat KTP: $e')),
       );

@@ -43,7 +43,7 @@ class DashboardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Greeting
+                //salam halaman aplikasi
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(AppDimensions.paddingM),
@@ -83,7 +83,7 @@ class DashboardScreen extends ConsumerWidget {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
 
-                // Stats Grid
+                //stats grid
                 GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,
@@ -128,7 +128,7 @@ class DashboardScreen extends ConsumerWidget {
                   ],
                 ),
 
-                // Low stock warning
+                //peringatan low stock
                 if (stats.lowStockDrinks.isNotEmpty) ...[
                   const SizedBox(height: 20),
                   Container(

@@ -18,13 +18,13 @@ class LaundryModel extends LaundryEntity {
   });
 
   factory LaundryModel.fromMap(Map<String, dynamic> map, String id) {
-    // Get tamu_id — could be a DocumentReference or a plain string
+    // get tamu_id —bisa berupa DOcumentReference atau string biasa
     final rawTamuId = map['tamu_id'] ?? map['guest_id'] ?? map['user_id'];
     final tamuId = rawTamuId is DocumentReference
         ? rawTamuId.id
         : rawTamuId as String? ?? '';
 
-    // Determine room number — try multiple field names from different apps
+    // tentukan nomor kamar — coba beberapa nama field dari berbagai aplikasi
     String roomNumber = '';
     for (final key in ['no_kamar', 'room_number', 'room', 'kamar', 'nomor_kamar']) {
       final v = map[key];
@@ -33,7 +33,7 @@ class LaundryModel extends LaundryEntity {
         break;
       }
     }
-    // Fallback: parse from tamuId with format "[201]"
+    // fallback: parse dari tamuId dengan format "[201]"
     if (roomNumber.isEmpty && tamuId.isNotEmpty) {
       final match = RegExp(r'\[(\d+)\]').firstMatch(tamuId);
       if (match != null) roomNumber = 'Kamar ${match.group(1)}';
@@ -47,14 +47,14 @@ class LaundryModel extends LaundryEntity {
         break;
       }
     }
-    // Fallback terakhir: scan SEMUA field — tangkap timestamp dari app manapun
+    //fallback terakhir: scan SEMUA field — tangkap timestamp dari app manapun
     if (createdAt.millisecondsSinceEpoch == 0) {
       for (final entry in map.entries) {
-        // Skip field jadwal/schedule yang biasanya di masa depan
+        // skip field jadwal/schedule yang biasanya di masa depan
         if (['jadwal', 'schedule', 'scheduled_at', 'check_in', 'checkout'].contains(entry.key)) continue;
         if (entry.value is Timestamp) {
           final dt = (entry.value as Timestamp).toDate();
-          // Ambil timestamp yang paling awal (waktu pembuatan, bukan jadwal masa depan)
+          // ambil timestamp yang paling awal (waktu pembuatan, bukan jadwal masa depan)
           if (createdAt.millisecondsSinceEpoch == 0 || dt.isBefore(createdAt)) {
             createdAt = dt;
           }
@@ -62,7 +62,7 @@ class LaundryModel extends LaundryEntity {
       }
     }
 
-    // beratKG: try multiple field names
+    // beratKG: coba beberapa nama field dari berbagai aplikasi
     double beratKG = 0.0;
     for (final key in ['beratKG', 'berat', 'weight', 'kg', 'berat_kg']) {
       final v = map[key];
@@ -72,8 +72,8 @@ class LaundryModel extends LaundryEntity {
       }
     }
 
-    // hargaPerKG: try multiple field names
-    double hargaPerKG = 15000.0;
+    // hargaPerKG: coba beberapa nama field dari berbagai aplikasi
+    double hargaPerKG = 10000.0;
     for (final key in ['hargaPerKG', 'harga_per_kg', 'price_per_kg', 'tarif']) {
       final v = map[key];
       if (v != null) {

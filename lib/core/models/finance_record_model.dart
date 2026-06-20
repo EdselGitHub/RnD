@@ -15,7 +15,7 @@ class FinanceRecordModel extends FinanceRecordEntity {
 
   bool get isIncome => tipe == 'income';
 
-  // Getter aliases for backward compatibility in UI
+  //getter pencocokan untuk UI
   String get category => kategori;
   double get amount => jumlah;
   DateTime get date => tanggal;

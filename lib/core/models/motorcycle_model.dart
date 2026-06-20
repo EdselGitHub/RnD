@@ -7,6 +7,7 @@ class MotorcycleModel extends MotorcycleEntity {
   const MotorcycleModel({
     required super.id,
     required super.nama,
+    required super.platNumber,
     required super.harga,
     required super.status,
   });
@@ -19,6 +20,7 @@ class MotorcycleModel extends MotorcycleEntity {
     return MotorcycleModel(
       id: id,
       nama: map['nama'] as String? ?? '',
+      platNumber: map['plat_number'] as String? ?? '',
       harga: (map['harga'] as num?)?.toDouble() ?? 0.0,
       status: map['status'] as String? ?? AppStrings.motorAvailable,
     );
@@ -31,6 +33,7 @@ class MotorcycleModel extends MotorcycleEntity {
   Map<String, dynamic> toMap() {
     return {
       'nama': nama,
+      'plat_number': platNumber,
       'harga': harga,
       'status': status,
     };

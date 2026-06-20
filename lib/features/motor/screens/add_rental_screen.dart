@@ -109,6 +109,7 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
         orElse: () => MotorcycleModel(
             id: widget.motorcycleId ?? '',
             nama: widget.plateNumber ?? '',
+            platNumber: widget.plateNumber ?? '',
             harga: 0,
             status: AppStrings.motorAvailable),
       );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class FilterChipWidget extends StatelessWidget {
-  final String label;
+  final String label; //pemasukan dan pengeluaran
   final bool isSelected;
   final Color color;
   final VoidCallback onTap;

@@ -9,17 +9,17 @@ class StorageService {
       final Reference ref = FirebaseStorage.instance.ref().child('kartu_identitas/$fileName');
       
       final bytes = await imageFile.readAsBytes();
-      final UploadTask uploadTask = ref.putData(
+      final UploadTask uploadTask = ref.putData( //upload bytes ke firestore
         bytes,
-        SettableMetadata(contentType: 'image/jpeg'),
+        SettableMetadata(contentType: 'image/jpeg'), // tandai sebagai image/jpeg
       );
       
       await uploadTask;
-      final String fullPath = ref.fullPath;
+      final String fullPath = ref.fullPath; // ambil path lengkap di storage
       
       return fullPath; // berhasil upload, kembalikan path
     } catch (e) {
-      debugPrint('Error uploading to Firebase Storage: $e');
+      debugPrint('Error upload ke firebase storage: $e');
       return null;
     }
   }

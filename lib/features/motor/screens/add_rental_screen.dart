@@ -23,6 +23,8 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _unitCtrl = TextEditingController();
+  bool _isCustomPrice = false;
+  final _customPriceCtrl = TextEditingController();
   DateTime? _startDate;
   DateTime? _endDate;
   bool _isLoading = false;
@@ -32,6 +34,7 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
     _unitCtrl.dispose();
+    _customPriceCtrl.dispose();
     super.dispose();
   }
 
@@ -39,8 +42,14 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: isStart ? now : (_startDate ?? now).add(const Duration(days: 1)),
-      firstDate: isStart ? now : (_startDate ?? now),
+      initialDate: isStart //supaya bisa input data lama
+          ? (_startDate ?? now) 
+          : (_endDate != null && !_endDate!.isBefore(_startDate ?? now) 
+              ? _endDate! 
+              : (_startDate?.add(const Duration(days: 1)) ?? now.add(const Duration(days: 1)))),
+      firstDate: isStart 
+          ? DateTime(2026)  // input data 2026
+          : (_startDate?.add(const Duration(days: 1)) ?? now.add(const Duration(days: 1))),
       lastDate: now.add(const Duration(days: 365)),
     );
     if (picked != null) {
@@ -115,7 +124,9 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
       );
 
       final days = _endDate!.difference(_startDate!).inDays;
-      final totalPrice = days * motor.harga;
+      final double totalPrice = _isCustomPrice
+          ? (double.tryParse(_customPriceCtrl.text) ?? 0.0)
+          : (days * motor.harga).toDouble();
 
       if (mounted) {
         Future.microtask(() {
@@ -124,7 +135,7 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
             context,
             MaterialPageRoute(
               builder: (_) => PaymentScreen(
-                totalAmount: totalPrice.toDouble(),
+                totalAmount: totalPrice,
                 onPaymentSuccess: () async {
                   //simpan kalau sudah payment
                   await ref.read(motorNotifierProvider.notifier).addRental(
@@ -134,7 +145,7 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
                         unit: _unitCtrl.text.trim(),
                         startDate: _startDate!,
                         endDate: _endDate!,
-                        total: totalPrice.toDouble(),
+                        total: totalPrice,
                       );
                   
                   if (context.mounted) {
@@ -163,8 +174,25 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
   @override
   Widget build(BuildContext context) {
     final df = DateFormat('dd MMM yyyy', 'id_ID');
+    final currency = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     final days =
         (_startDate != null && _endDate != null) ? _endDate!.difference(_startDate!).inDays : 0;
+
+    final motorsAsync = ref.watch(motorcyclesStreamProvider);
+    final motors = motorsAsync.value ?? [];
+    final motor = motors.firstWhere(
+      (m) => m.id == widget.motorcycleId,
+      orElse: () => MotorcycleModel(
+          id: widget.motorcycleId ?? '',
+          nama: widget.plateNumber ?? '',
+          platNumber: widget.plateNumber ?? '',
+          harga: 0,
+          status: AppStrings.motorAvailable),
+    );
+
+    final double totalPrice = _isCustomPrice
+        ? (double.tryParse(_customPriceCtrl.text) ?? 0.0)
+        : (days * motor.harga).toDouble();
 
     return Scaffold(
       appBar: AppBar(title: Text('Penyewaan Motor ${widget.plateNumber ?? ''}')),
@@ -198,14 +226,79 @@ class _AddRentalScreenState extends ConsumerState<AddRentalScreen> {
                           ),
                         ],
                       ),
-                      if (days > 0)
+                      if (days > 0 || _isCustomPrice)
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
-                          child: Text('$days hari',
-                              style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w600)),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('$days hari',
+                                  style: const TextStyle(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600)),
+                              Text('Total: ${currency.format(totalPrice)}',
+                                  style: const TextStyle(
+                                      color: AppColors.success,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold)),
+                            ],
+                          ),
                         ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppDimensions.paddingM),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Metode Biaya',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      const SizedBox(height: 8),
+                      SwitchListTile(
+                        title: const Text('Gunakan Harga Kustom (Manual)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                        subtitle: const Text('Nonaktifkan perhitungan otomatis untuk mengisi harga sendiri', style: TextStyle(fontSize: 11)),
+                        value: _isCustomPrice,
+                        activeColor: AppColors.primary,
+                        contentPadding: EdgeInsets.zero,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _isCustomPrice = value;
+                            if (!value) {
+                              _customPriceCtrl.clear();
+                            }
+                          });
+                        },
+                      ),
+                      if (_isCustomPrice) ...[
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _customPriceCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Masukkan Harga Total (Rp)',
+                            prefixIcon: Icon(Icons.money_rounded),
+                            hintText: 'Contoh: 50000',
+                          ),
+                          onChanged: (val) {
+                            setState(() {});
+                          },
+                          validator: (v) {
+                            if (_isCustomPrice && (v == null || v.isEmpty)) {
+                              return 'Harga kustom wajib diisi jika mode manual aktif';
+                            }
+                            if (v != null && double.tryParse(v) == null) {
+                              return 'Masukkan angka yang valid';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
                     ],
                   ),
                 ),

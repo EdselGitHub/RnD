@@ -24,7 +24,7 @@ class DashboardScreen extends ConsumerWidget {
         title: const Text(AppStrings.appName),
         actions: [
 
-        
+        //tombol refresh
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(dashboardStatsProvider),
@@ -35,13 +35,14 @@ class DashboardScreen extends ConsumerWidget {
       body: statsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
-        data: (stats) => RefreshIndicator(
-          onRefresh: () async => ref.invalidate(dashboardStatsProvider),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(AppDimensions.paddingM),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // data: (stats) => RefreshIndicator( // pembaruan data secara paksa
+          // onRefresh: () async => ref.invalidate(dashboardStatsProvider),
+          // child: SingleChildScrollView(
+        data: (stats) => SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(AppDimensions.paddingM),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 //salam halaman aplikasi
                 Container(
@@ -172,10 +173,10 @@ class DashboardScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 _QuickMenuGrid(isKaryawan: isKaryawan),
               ],
+            //),
             ),
           ),
         ),
-      ),
 
 
       // fetch testing

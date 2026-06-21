@@ -28,8 +28,8 @@ class DashboardStats {
 }
 
 /// auto-complete expired motor rentals di firestore.
-/// jika rental is still 'aktif' tapi tanggalSelesai has passed,
-/// tandai rental as 'selesai' dan motor as 'tersedia'.
+/// jika rental is still 'aktif' tapi tanggalSelesai sudah berlalu,
+/// tandai rental sebagai 'selesai' dan motor sebagai 'tersedia'.
 Future<void> _autoCompleteExpiredRentals(
   FirebaseFirestore db,
   QuerySnapshot motorSewaSnap,
@@ -97,7 +97,7 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
   QuerySnapshot? drinksSnap;
   QuerySnapshot? reservasiSnap;
 
-  void tryEmit() {
+  void tryEmit() { //cek apa semua data sudah dimuat pertama kali di firebase
     if (roomsSnap == null || motorsSnap == null || motorSewaSnap == null ||
         financeSnap1 == null ||
         drinksSnap == null || reservasiSnap == null) {
@@ -192,6 +192,8 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
     double todayIncome = 0;
     for (final doc in financeSnap1!.docs) {
       final data = doc.data() as Map<String, dynamic>;
+      //lewati transaksi yang sudah di-soft-delete oleh admin
+      if (data['admin_deleted'] == true) continue;
       final amount = (data['jumlah'] as num).toDouble();
       if (data['tipe'] == 'expense') {
         todayIncome -= amount;
@@ -226,6 +228,7 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
     ));
   }
 
+//dengerin perubahan data realtime
   controller = StreamController<DashboardStats>(
     onListen: () {
       final sub1 = roomsStream.listen((snap) { roomsSnap = snap; tryEmit(); });
@@ -235,6 +238,7 @@ final dashboardStatsProvider = StreamProvider<DashboardStats>((ref) {
       final sub6 = drinksStream.listen((snap) { drinksSnap = snap; tryEmit(); });
       final sub7 = reservasiStream.listen((snap) { reservasiSnap = snap; tryEmit(); });
 
+//kalau user nggak lagi di halaman ini, stop dengerin perubahan data
       controller?.onCancel = () {
         sub1.cancel();
         sub2.cancel();

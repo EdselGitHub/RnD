@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/motorcycle_model.dart';
 import '../../../core/models/motor_rental_model.dart';
@@ -26,16 +27,18 @@ final motorcyclesStreamProvider = StreamProvider<List<MotorcycleModel>>((ref) as
 
     if (rentalsAsync is AsyncData) {
       final rentals = rentalsAsync.value!;
-      final now = DateTime.now();
+      final today = DateUtils.dateOnly(DateTime.now());
 
       // 2. Mengecek status rental menggunakan loop for biasa
       for (final motor in motorsList) {
         bool isOccupiedNow = false;
         for (final res in rentals) {
+          final rentalStart = DateUtils.dateOnly(res.tanggal);
+          final rentalEnd = DateUtils.dateOnly(res.tanggalSelesai);
           if (res.status == 'aktif' &&
               res.motorId == motor.id &&
-              now.compareTo(res.tanggal) >= 0 &&
-              now.compareTo(res.tanggalSelesai) < 0) {
+              today.compareTo(rentalStart) >= 0 &&
+              today.compareTo(rentalEnd) <= 0) {
             isOccupiedNow = true;
             break; // Jika sudah cocok, hentikan pencarian
           }

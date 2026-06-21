@@ -92,6 +92,7 @@ class ReservationNotifier extends AsyncNotifier<void> {
     // simpan guest ke Tamu collection
     final guestMap = guest.toMap();
     final guestRef = await db.collection(FirestoreCollections.tamu).add(guestMap);
+    
 
     // simpan reservasi ke Reservasi collection dengan DocumentReference
     await db.collection(FirestoreCollections.reservasi).add({
@@ -109,7 +110,7 @@ class ReservationNotifier extends AsyncNotifier<void> {
     // record finance di Transaksi_Keuangan
     await db.collection(FirestoreCollections.transaksiKeuangan).add({
       'kategori': 'penjualan kamar',
-      'deskripsi': 'Penjualan kamar ${room.nama}',
+       'deskripsi': 'Penjualan kamar ${room.nama} ',
       'jumlah': total,
       'tanggal': Timestamp.fromDate(checkIn),
     //  'tanggal': Timestamp.fromDate(DateTime.now()),

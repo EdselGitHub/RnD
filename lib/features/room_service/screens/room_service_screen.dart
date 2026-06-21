@@ -34,8 +34,8 @@ class RoomServiceScreen extends ConsumerWidget {
             itemCount: schedules.length,
             itemBuilder: (_, i) {
               final s = schedules[i];
-              final isSelesai = s.status == 'selesai';
-              final isProses = s.status == 'proses';
+              final isSelesai = s.status == AppStrings.rsDone;
+              final isProses = s.status == AppStrings.rsProses;
               String roomName = s.roomNumber;
               if (roomName.isEmpty && roomsAsync.value != null) {
                 try {

@@ -41,13 +41,16 @@ class MotorcycleListScreen extends ConsumerWidget {
               final isAvailable = m.isAvailable;
 
               List<MotorRentalModel> motorRentals = [];
-              if (!isAvailable && rentalsAsync is AsyncData) {
-                final now = DateTime.now();
-                motorRentals = rentalsAsync.value!.where((res) => 
-                  res.motorId == m.id && 
-                  res.status == 'aktif' &&
-                  now.compareTo(res.tanggalSelesai) < 0
-                ).toList();
+              if (rentalsAsync is AsyncData) {
+                final today = DateUtils.dateOnly(DateTime.now());
+                motorRentals = rentalsAsync.value!.where((res) {
+                  final rentalStart = DateUtils.dateOnly(res.tanggal);
+                  final rentalEnd = DateUtils.dateOnly(res.tanggalSelesai);
+                  return res.motorId == m.id &&
+                      res.status == 'aktif' &&
+                      today.compareTo(rentalStart) >= 0 &&
+                      today.compareTo(rentalEnd) <= 0;
+                }).toList();
                 motorRentals.sort((a, b) => a.tanggal.compareTo(b.tanggal));
               }
 

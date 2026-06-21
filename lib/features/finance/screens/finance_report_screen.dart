@@ -8,7 +8,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/finance_constants.dart';
 import '../../../core/services/finance_export_service.dart';
 import '../widgets/period_tab.dart';
-import '../../../widgets/filter_chip_widget.dart';
+import '../widgets/filter_chip_widget.dart';
 import '../widgets/finance_summary_card.dart';
 import '../widgets/finance_pie_chart.dart';
 import '../widgets/finance_transaction_item.dart';

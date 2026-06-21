@@ -129,7 +129,7 @@ class AppDrawer extends ConsumerWidget {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              await ref.read(authNotifierProvider.notifier).signOut();
+              await ref.read(authNotifierProvider.notifier).signOut(); //keluar dari akun
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('Keluar'),

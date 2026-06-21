@@ -43,6 +43,10 @@ final financeRecordsProvider = StreamProvider<List<FinanceRecordModel>>((ref) {
     final allDocs = <DocumentSnapshot>[...snap1!.docs];
     final List<FinanceRecordModel> records = [];
     for (final d in allDocs) {
+      final data = d.data() as Map<String, dynamic>?;
+      if (data != null && data['admin_deleted'] == true) {
+        continue;
+      }
       final r = FinanceRecordModel.fromDoc(d);
       
       final inRange = r.tanggal.isAfter(start.subtract(const Duration(seconds: 1))) &&
@@ -131,13 +135,13 @@ class FinanceNotifier extends AsyncNotifier<void> {
           if (checkinTime != null &&
               checkinTime.difference(record.date).abs().inMinutes < 120) {
             
-            //1. batalkan status reservasi
+            //batalkan status reservasi
             await db
                 .collection(FirestoreCollections.reservasi)
                 .doc(doc.id)
                 .update({'status': 'dibatalkan'});
 
-            //2.ubah status ruangan menjadi tersedia kembali
+            //ubah status ruangan menjadi tersedia kembali
             final roomIdRef = data['room_id'];
             if (roomIdRef is DocumentReference) {
               await roomIdRef.update({'status': 'tersedia'});
@@ -155,8 +159,11 @@ class FinanceNotifier extends AsyncNotifier<void> {
       }
     }
 
-    //hapus record transaksi keuangan
-    await db.collection(FirestoreCollections.transaksiKeuangan).doc(record.id).delete();
+        //hapus record transaksi keuangan
+    //await db.collection(FirestoreCollections.transaksiKeuangan).doc(record.id).delete();
+
+    //hapus record transaksi keuangan secara soft-delete agar tidak menghilang dari riwayat pesanan di User app
+    await db.collection(FirestoreCollections.transaksiKeuangan).doc(record.id).update({'admin_deleted': true});
   }
 }
 

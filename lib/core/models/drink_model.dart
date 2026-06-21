@@ -10,7 +10,7 @@ class DrinkModel extends DrinkEntity {
     required super.stok,
   });
 
-  bool get isLowStock => stok < 2;
+  bool get isLowStock => stok < 3;
 
   factory DrinkModel.fromMap(Map<String, dynamic> map, String id) {
     return DrinkModel(

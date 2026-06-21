@@ -93,6 +93,8 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
       // // firstDate: DateTime(now.month - 1),
       // firstDate: DateTime(2026),
       // // lastDate: DateTime(2045),
+     // (${df.format(checkIn)} - ${df.format(checkOut)})
+     //final df = DateFormat('dd MMM yyyy', 'id_ID');//formarter
       initialDate: isCheckIn 
           ? (_checkIn ?? now) 
           : (_checkOut != null && !_checkOut!.isBefore(_checkIn ?? now) 
@@ -169,13 +171,15 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
       
       bool isOverlap = reservations.any((res) {
         if (res.roomId != widget.roomId || res.status != 'aktif') return false;
-        //strip time components to ensure pure date comparisons
-        final checkInDate = DateUtils.dateOnly(_checkIn!);
+        //untuk memastikan tanggal sesuai dengan inputan
+        final checkInDate = DateUtils.dateOnly(_checkIn!);//dipilih admin
         final checkOutDate = DateUtils.dateOnly(_checkOut!);
-        final resCheckin = DateUtils.dateOnly(res.checkin);
+        final resCheckin = DateUtils.dateOnly(res.checkin);//sudah ada di database
         final resCheckout = DateUtils.dateOnly(res.checkout);
         //kondisi overlap: (checkIn < res.checkout && checkOut > res.checkin)
         return checkInDate.isBefore(resCheckout) && checkOutDate.isAfter(resCheckin);
+      //checkInBaru < checkoutLama  &&  checkOutBaru > checkinLama
+
       });
 
       if (isOverlap) {
@@ -315,7 +319,7 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
       int remainingNights = nights;
 
     if (room.hargaBulanan > 0 && remainingNights >= 30) {
-      final months = remainingNights ~/ 30;
+      final months = remainingNights ~/ 30; //pembagian bulat
       totalPrice += months * room.hargaBulanan;
       remainingNights %= 30;
     }

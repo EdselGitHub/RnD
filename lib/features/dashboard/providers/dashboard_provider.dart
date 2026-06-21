@@ -5,9 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/services/firestore_service.dart';
 import '../../../core/constants/firestore_constants.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../auth/providers/auth_provider.dart';
 
-final firestoreServiceProvider =
-    Provider<FirestoreService>((ref) => FirestoreService());
+// final firestoreServiceProvider = // kalau pakai ini masalah pas login pertama kali firestore rules denied
+//     Provider<FirestoreService>((ref) => FirestoreService());
+//karena detik pertama query jalan status pengguna masih belum login (unauthenticated)
+
+final firestoreServiceProvider = Provider<FirestoreService>((ref) {
+  ref.watch(authStateProvider);
+  return FirestoreService();
+});
 
 class DashboardStats {
   final int occupiedRooms;

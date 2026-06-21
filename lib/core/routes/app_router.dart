@@ -101,7 +101,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'add-laundry',
         builder: (context, state) => const AddLaundryScreen(),
       ),
-      // Room Service
+      //room Service
       GoRoute(
         path: '/room-service',
         name: 'room-service',
@@ -112,7 +112,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'add-schedule',
         builder: (context, state) => const AddScheduleScreen(),
       ),
-      // Drinks
+      //Drinks
       GoRoute(
         path: '/drinks',
         name: 'drinks',

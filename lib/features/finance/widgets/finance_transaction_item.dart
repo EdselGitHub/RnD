@@ -52,7 +52,7 @@ class FinanceTransactionItem extends ConsumerWidget {
             size: 20,
           ),
         ),
-        title: _buildTransactionTitle(record, const TextStyle(fontSize: 13)),
+        title: _buildTransactionTitle(record, const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
         subtitle: Text(
           dateFormatter.format(record.date),
           style: const TextStyle(fontSize: 11),
@@ -67,24 +67,45 @@ class FinanceTransactionItem extends ConsumerWidget {
                 color: record.isIncome ? AppColors.success : AppColors.error,
               ),
             ),
-            if ((record.kartuIdentitas != null &&
-                    record.kartuIdentitas!.isNotEmpty) ||
-                record.category == 'kamar') ...[
+            if (((record.kartuIdentitas != null && record.kartuIdentitas!.isNotEmpty) ||
+                    record.category == 'kamar') ||
+                isAdminOrOwner) ...[
               const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.badge_outlined,
-                    size: 20, color: AppColors.primary),
-                tooltip: 'Lihat Kartu Identitas',
-                onPressed: () => _showIdentityCard(context),
-              ),
-            ],
-            if (isAdminOrOwner) ...[
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.delete_outline,
-                    size: 20, color: AppColors.error),
-                tooltip: 'Hapus Transaksi',
-                onPressed: () => _showDeleteConfirmation(context, ref),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if ((record.kartuIdentitas != null && record.kartuIdentitas!.isNotEmpty) ||
+                      record.category == 'kamar')
+                    SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(Icons.badge_outlined, size: 16, color: AppColors.primary),
+                        tooltip: 'Lihat Kartu Identitas',
+                        onPressed: () => _showIdentityCard(context),
+                      ),
+                    ),
+                  if (((record.kartuIdentitas != null && record.kartuIdentitas!.isNotEmpty) ||
+                          record.category == 'kamar') &&
+                      isAdminOrOwner)
+                    const SizedBox(height: 4),
+                  if (isAdminOrOwner)
+                    SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(Icons.delete_outline, size: 16, color: AppColors.error),
+                        tooltip: 'Hapus Transaksi',
+                        onPressed: () => _showDeleteConfirmation(context, ref),
+                      ),
+                    ),
+                ],
               ),
             ],
           ],

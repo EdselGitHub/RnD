@@ -45,8 +45,8 @@ class _AddReservationScreenState extends ConsumerState<AddReservationScreen> {
     super.dispose();
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    final picked = await _imagePicker.pickImage(source: source);
+  Future<void> _pickImage(ImageSource source) async { //asal dari image_pciker dependency
+    final picked = await _imagePicker.pickImage(source: source); //source ada dua yaitu gallery atau camera
     if (picked != null) {
       setState(() => _idCardImage = picked);
     }
